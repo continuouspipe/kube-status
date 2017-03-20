@@ -25,10 +25,9 @@ tasks:
                         specification:
                             ports:
                               - 80
-
-                        environment_variables:
-                            - name: KUBE_STATUS_LISTEN_ADDRESS
-                              value: ${KUBE_STATUS_LISTEN_ADDRESS}
+                            environment_variables:
+                                - name: KUBE_STATUS_LISTEN_ADDRESS
+                                  value: ${KUBE_STATUS_LISTEN_ADDRESS}
 
                         deployment_strategy:
                             readiness_probe:
