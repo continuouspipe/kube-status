@@ -1,0 +1,8 @@
+web:
+    build: .
+    expose:
+        - 80
+    volumes:
+        - .:/go/src/github.com/continuouspipe/kube-status/bin
+    environment:
+        KUBE_STATUS_LISTEN_ADDRESS:

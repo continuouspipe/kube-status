@@ -1,0 +1,4 @@
+package: github.com/continuouspipe/kube-status
+import:
+- package: github.com/gorilla/mux
+- package: github.com/golang/glog
