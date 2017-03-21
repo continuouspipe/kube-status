@@ -29,7 +29,12 @@ func main() {
 	}
 
 	r := mux.NewRouter()
+	r.HandleFunc("/", RootHandle)
 	r.HandleFunc(api.ClusterFullStatusUrlPath, api.NewClusterFullStatusH().Handle).Methods(http.MethodPost)
 	http.ListenAndServe(listenURL.Host, r)
 	glog.Flush()
+}
+
+func RootHandle(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
 }
