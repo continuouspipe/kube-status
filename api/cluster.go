@@ -50,10 +50,19 @@ type ClusterFullStatusRequestLimits struct {
 	Limits  string `json:"limits"`
 }
 
+type ClusterFullStatusCpuMemory struct {
+	Cpu    string `json:"cpu"`
+	Memory string `json:"memory"`
+}
+
 type ClusterFullStatusNode struct {
-	Name      string                     `json:"name"`
-	Status    string                     `json:"status"`
-	Resources ClusterFullStatusResources `json:"resources"`
+	Name              string                     `json:"name"`
+	CreationTimestamp string                     `json:"creationTimestamp"`
+	Status            string                     `json:"status"`
+	Resources         ClusterFullStatusResources `json:"resources"`
+	Capacity          ClusterFullStatusCpuMemory `json:"capacity"`
+	Allocatable       ClusterFullStatusCpuMemory `json:"allocatable"`
+	VolumesInUse      int                        `json:"volumesInUse"`
 }
 
 type ClusterFullStatusH struct{}
@@ -158,6 +167,7 @@ func (h ClusterFullStatusH) Handle(w http.ResponseWriter, r *http.Request) {
 
 		statusNodes = append(statusNodes, ClusterFullStatusNode{
 			node.Name,
+			node.GetCreationTimestamp().String(),
 			string(node.Status.Conditions[totalConditions-1].Type),
 			ClusterFullStatusResources{
 				ClusterFullStatusRequestLimits{
@@ -179,6 +189,15 @@ func (h ClusterFullStatusH) Handle(w http.ResponseWriter, r *http.Request) {
 					},
 				},
 			},
+			ClusterFullStatusCpuMemory{
+				node.Status.Capacity.Cpu().String(),
+				node.Status.Capacity.Memory().String(),
+			},
+			ClusterFullStatusCpuMemory{
+				node.Status.Allocatable.Cpu().String(),
+				node.Status.Allocatable.Memory().String(),
+			},
+			len(node.Status.VolumesInUse),
 		})
 	}
 
@@ -233,10 +252,6 @@ func getNodeResource(nodeNonTerminatedPodsList *kubernetesapi.PodList, node *kub
 	fractionCpuLimits := float64(cpuLimits.MilliValue()) / float64(allocatable.Cpu().MilliValue()) * 100
 	fractionMemoryReqs := float64(memoryReqs.Value()) / float64(allocatable.Memory().Value()) * 100
 	fractionMemoryLimits := float64(memoryLimits.Value()) / float64(allocatable.Memory().Value()) * 100
-
-	fmt.Printf("  %s (%d%%)\t%s (%d%%)\t%s (%d%%)\t%s (%d%%)\n",
-		cpuReqs.String(), int64(fractionCpuReqs), cpuLimits.String(), int64(fractionCpuLimits),
-		memoryReqs.String(), int64(fractionMemoryReqs), memoryLimits.String(), int64(fractionMemoryLimits))
 
 	return &NodeResource{
 		cpuReqs.String(),
