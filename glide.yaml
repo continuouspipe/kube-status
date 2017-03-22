@@ -2,9 +2,9 @@ package: github.com/continuouspipe/kube-status
 import:
 - package: github.com/gorilla/mux
 - package: github.com/golang/glog
-- package: k8s.io/client-go
-  version: v2.0.0
-# Use a newer version of go-spew even though client-go wants an old one. github.com/kubernetes/client-go/blob/master/INSTALL.md
-- package: github.com/davecgh/go-spew
-  version: v1.1.0
 - package: k8s.io/apimachinery/pkg/apis/meta/v1
+- package: "k8s.io/kubernetes/pkg/api"
+- package: "k8s.io/kubernetes/pkg/api/resource"
+- package: "k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset"
+- package: "k8s.io/kubernetes/pkg/client/unversioned/clientcmd"
+- package: "k8s.io/kubernetes/pkg/client/unversioned/clientcmd/api"

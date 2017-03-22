@@ -6,14 +6,14 @@ import (
 	"fmt"
 	"github.com/golang/glog"
 	"io/ioutil"
-	"k8s.io/client-go/kubernetes"
-	clientapi "k8s.io/client-go/pkg/api"
-	"k8s.io/client-go/pkg/api/resource"
-	"k8s.io/client-go/pkg/api/v1"
-	"k8s.io/client-go/tools/clientcmd"
-	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"net/http"
 	"strconv"
+
+	kubernetesapi "k8s.io/kubernetes/pkg/api"
+	"k8s.io/kubernetes/pkg/api/resource"
+	"k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset"
+	"k8s.io/kubernetes/pkg/client/unversioned/clientcmd"
+	clientcmdapi "k8s.io/kubernetes/pkg/client/unversioned/clientcmd/api"
 )
 
 const ClusterFullStatusUrlPath = "/cluster/full-status"
@@ -110,7 +110,7 @@ func (h ClusterFullStatusH) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	clientset, err := kubernetes.NewForConfig(restConfig)
+	clientset, err := internalclientset.NewForConfig(restConfig)
 	if err != nil {
 		err = fmt.Errorf("error when creating the client api, details %s ", err.Error())
 		glog.Error(err)
@@ -119,7 +119,7 @@ func (h ClusterFullStatusH) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	nodes, err := clientset.CoreV1().Nodes().List(v1.ListOptions{})
+	nodes, err := clientset.Core().Nodes().List(kubernetesapi.ListOptions{})
 	if err != nil {
 		err = fmt.Errorf("error when getting the node list, details %s ", err.Error())
 		glog.Error(err)
@@ -136,7 +136,7 @@ func (h ClusterFullStatusH) Handle(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		podList, err := clientset.CoreV1().Pods(node.GetNamespace()).List(v1.ListOptions{})
+		podList, err := clientset.Core().Pods(node.GetNamespace()).List(kubernetesapi.ListOptions{})
 		if err != nil {
 			err = fmt.Errorf("error when fetching the list of pods for the namespace %s, details %s ", node.GetNamespace(), err.Error())
 			glog.Error(err)
@@ -208,7 +208,7 @@ type NodeResource struct {
 	fractionMemoryLimits int64
 }
 
-func getNodeResource(nodeNonTerminatedPodsList *clientapi.PodList, node *clientapi.Node) (*NodeResource, error) {
+func getNodeResource(nodeNonTerminatedPodsList *kubernetesapi.PodList, node *kubernetesapi.Node) (*NodeResource, error) {
 	allocatable := node.Status.Capacity
 	if len(node.Status.Allocatable) > 0 {
 		allocatable = node.Status.Allocatable
@@ -218,11 +218,15 @@ func getNodeResource(nodeNonTerminatedPodsList *clientapi.PodList, node *clienta
 	if err != nil {
 		return nil, err
 	}
-	cpuReqs, cpuLimits, memoryReqs, memoryLimits := reqs[clientapi.ResourceCPU], limits[clientapi.ResourceCPU], reqs[clientapi.ResourceMemory], limits[clientapi.ResourceMemory]
+	cpuReqs, cpuLimits, memoryReqs, memoryLimits := reqs[kubernetesapi.ResourceCPU], limits[kubernetesapi.ResourceCPU], reqs[kubernetesapi.ResourceMemory], limits[kubernetesapi.ResourceMemory]
 	fractionCpuReqs := float64(cpuReqs.MilliValue()) / float64(allocatable.Cpu().MilliValue()) * 100
 	fractionCpuLimits := float64(cpuLimits.MilliValue()) / float64(allocatable.Cpu().MilliValue()) * 100
 	fractionMemoryReqs := float64(memoryReqs.Value()) / float64(allocatable.Memory().Value()) * 100
 	fractionMemoryLimits := float64(memoryLimits.Value()) / float64(allocatable.Memory().Value()) * 100
+
+	fmt.Printf("  %s (%d%%)\t%s (%d%%)\t%s (%d%%)\t%s (%d%%)\n",
+		cpuReqs.String(), int64(fractionCpuReqs), cpuLimits.String(), int64(fractionCpuLimits),
+		memoryReqs.String(), int64(fractionMemoryReqs), memoryLimits.String(), int64(fractionMemoryLimits))
 
 	return &NodeResource{
 		cpuReqs.String(),
@@ -235,10 +239,10 @@ func getNodeResource(nodeNonTerminatedPodsList *clientapi.PodList, node *clienta
 		int64(fractionMemoryLimits)}, nil
 }
 
-func getPodsTotalRequestsAndLimits(podList *clientapi.PodList) (reqs map[clientapi.ResourceName]resource.Quantity, limits map[clientapi.ResourceName]resource.Quantity, err error) {
-	reqs, limits = map[clientapi.ResourceName]resource.Quantity{}, map[clientapi.ResourceName]resource.Quantity{}
+func getPodsTotalRequestsAndLimits(podList *kubernetesapi.PodList) (reqs map[kubernetesapi.ResourceName]resource.Quantity, limits map[kubernetesapi.ResourceName]resource.Quantity, err error) {
+	reqs, limits = map[kubernetesapi.ResourceName]resource.Quantity{}, map[kubernetesapi.ResourceName]resource.Quantity{}
 	for _, pod := range podList.Items {
-		podReqs, podLimits, err := clientapi.PodRequestsAndLimits(&pod)
+		podReqs, podLimits, err := kubernetesapi.PodRequestsAndLimits(&pod)
 		if err != nil {
 			return nil, nil, err
 		}
