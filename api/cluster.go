@@ -19,7 +19,7 @@ import (
 
 const ClusterFullStatusUrlPath = "/cluster/full-status"
 
-type clusterRequested struct {
+type ClusterRequested struct {
 	Address  string `json:"address"`
 	Username string `json:"username"`
 	Password string `json:"password"`
@@ -30,8 +30,9 @@ type ClusterFullStatusHandler interface {
 }
 
 type ClusterFullStatusResponse struct {
-	Resources ClusterFullStatusResources `json:"resources"`
-	Nodes     []ClusterFullStatusNode    `json:"nodes"`
+	Resources ClusterFullStatusResources        `json:"resources"`
+	Nodes     []ClusterFullStatusNode           `json:"nodes"`
+	Pods      map[string][]ClusterFullStatusPod `json:"pods"`
 }
 
 type ClusterFullStatusResources struct {
@@ -65,6 +66,11 @@ type ClusterFullStatusNode struct {
 	VolumesInUse      int                        `json:"volumesInUse"`
 }
 
+type ClusterFullStatusPod struct {
+	Name   string `json:"name"`
+	Status string `json:"status"`
+}
+
 type ClusterFullStatusH struct{}
 
 func NewClusterFullStatusH() *ClusterFullStatusH {
@@ -81,7 +87,7 @@ func (h ClusterFullStatusH) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	requestedCluster := clusterRequested{}
+	requestedCluster := ClusterRequested{}
 	err = json.Unmarshal(resBodyData, &requestedCluster)
 	if err != nil {
 		err = fmt.Errorf("error when unmarshalling the request body json %s, details %s ", r.Body, err.Error())
@@ -139,6 +145,7 @@ func (h ClusterFullStatusH) Handle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	statusNodes := []ClusterFullStatusNode{}
+	statusPods := make(map[string][]ClusterFullStatusPod)
 
 	for _, node := range nodes.Items {
 		totalConditions := len(node.Status.Conditions)
@@ -164,6 +171,13 @@ func (h ClusterFullStatusH) Handle(w http.ResponseWriter, r *http.Request) {
 		}
 
 		nodeResources, err := getNodeResource(nodeNonTerminatedPodsList, &node)
+
+		for _, pod := range nodeNonTerminatedPodsList.Items {
+			statusPods[pod.GetNamespace()] = append(statusPods[pod.GetNamespace()], ClusterFullStatusPod{
+				pod.GetName(),
+				string(pod.Status.Phase),
+			})
+		}
 
 		statusNodes = append(statusNodes, ClusterFullStatusNode{
 			node.Name,
@@ -211,6 +225,7 @@ func (h ClusterFullStatusH) Handle(w http.ResponseWriter, r *http.Request) {
 			},
 		},
 		statusNodes,
+		statusPods,
 	}
 
 	respBody, err := json.Marshal(statusResponse)
