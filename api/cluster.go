@@ -6,12 +6,14 @@ import (
 	"fmt"
 	"github.com/golang/glog"
 	"io/ioutil"
-	"net/http"
-
 	"k8s.io/client-go/kubernetes"
+	clientapi "k8s.io/client-go/pkg/api"
+	"k8s.io/client-go/pkg/api/resource"
 	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	"net/http"
+	"strconv"
 )
 
 const ClusterFullStatusUrlPath = "/cluster/full-status"
@@ -32,12 +34,19 @@ type ClusterFullStatusResponse struct {
 }
 
 type ClusterFullStatusResources struct {
+	Cpu                ClusterFullStatusRequestLimits      `json:"cpu"`
+	Memory             ClusterFullStatusRequestLimits      `json:"memory"`
+	PercentOfAvailable ClusterFullStatusPercentOfAvailable `json:"percentOfAvailable"`
 }
 
-type ClusterFullStatusRequests struct {
-	Cpu                int    `json:"int"`
-	Memory             string `json:"memory"`
-	PercentOfAvailable string `json:"percentOfAvailable"`
+type ClusterFullStatusPercentOfAvailable struct {
+	Cpu    ClusterFullStatusRequestLimits `json:"cpu"`
+	Memory ClusterFullStatusRequestLimits `json:"memory"`
+}
+
+type ClusterFullStatusRequestLimits struct {
+	Request string `json:"requests"`
+	Limits  string `json:"limits"`
 }
 
 type ClusterFullStatusNode struct {
@@ -51,36 +60,6 @@ type ClusterFullStatusH struct{}
 func NewClusterFullStatusH() *ClusterFullStatusH {
 	return &ClusterFullStatusH{}
 }
-
-/*
-`
-	{
-
-        “resources”: {
-             “requests”: {
-                  “cpu”: “12”,
-                  “memory”: “120G”,
-                  “percentOfAvailable”: “87%”,
-             }
-        },
-        “nodes”: [
-            {
-                "name": "...",
-                "status": "...",
-                “resources”: {
-                    “requests”: {
-                        “cpu”: “2”,
-                        “memory”: “12G”,
-                        “percentOfAvailable”: “34%”,
-                    }
-                }
-            },
-            ...
-        ]
-
-}
-`
-*/
 
 func (h ClusterFullStatusH) Handle(w http.ResponseWriter, r *http.Request) {
 	resBodyData, err := ioutil.ReadAll(r.Body)
@@ -153,15 +132,55 @@ func (h ClusterFullStatusH) Handle(w http.ResponseWriter, r *http.Request) {
 
 	for _, node := range nodes.Items {
 		totalConditions := len(node.Status.Conditions)
+		if totalConditions <= 0 {
+			continue
+		}
+
+		podList, err := clientset.CoreV1().Pods(node.GetNamespace()).List(v1.ListOptions{})
+		if err != nil {
+			err = fmt.Errorf("error when fetching the list of pods for the namespace %s, details %s ", node.GetNamespace(), err.Error())
+			glog.Error(err)
+			glog.Flush()
+			continue
+		}
+
+		nodeResources, err := getNodeResource(podList, &node)
+
 		statusNodes = append(statusNodes, ClusterFullStatusNode{
 			node.Name,
 			string(node.Status.Conditions[totalConditions-1].Type),
-			ClusterFullStatusResources{},
+			ClusterFullStatusResources{
+				ClusterFullStatusRequestLimits{
+					nodeResources.cpuReqs,
+					nodeResources.cpuLimits,
+				},
+				ClusterFullStatusRequestLimits{
+					nodeResources.memoryReqs,
+					nodeResources.memoryLimits,
+				},
+				ClusterFullStatusPercentOfAvailable{
+					ClusterFullStatusRequestLimits{
+						strconv.FormatInt(nodeResources.fractionCpuReqs, 10),
+						strconv.FormatInt(nodeResources.fractionCpuLimits, 10),
+					},
+					ClusterFullStatusRequestLimits{
+						strconv.FormatInt(nodeResources.fractionMemoryReqs, 10),
+						strconv.FormatInt(nodeResources.fractionMemoryLimits, 10),
+					},
+				},
+			},
 		})
 	}
 
 	statusResponse := &ClusterFullStatusResponse{
-		ClusterFullStatusResources{},
+		ClusterFullStatusResources{
+			ClusterFullStatusRequestLimits{},
+			ClusterFullStatusRequestLimits{},
+			ClusterFullStatusPercentOfAvailable{
+				ClusterFullStatusRequestLimits{},
+				ClusterFullStatusRequestLimits{},
+			},
+		},
 		statusNodes,
 	}
 
@@ -176,4 +195,69 @@ func (h ClusterFullStatusH) Handle(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(respBody)
+}
+
+type NodeResource struct {
+	cpuReqs              string
+	fractionCpuReqs      int64
+	cpuLimits            string
+	fractionCpuLimits    int64
+	memoryReqs           string
+	fractionMemoryReqs   int64
+	memoryLimits         string
+	fractionMemoryLimits int64
+}
+
+func getNodeResource(nodeNonTerminatedPodsList *clientapi.PodList, node *clientapi.Node) (*NodeResource, error) {
+	allocatable := node.Status.Capacity
+	if len(node.Status.Allocatable) > 0 {
+		allocatable = node.Status.Allocatable
+	}
+
+	reqs, limits, err := getPodsTotalRequestsAndLimits(nodeNonTerminatedPodsList)
+	if err != nil {
+		return nil, err
+	}
+	cpuReqs, cpuLimits, memoryReqs, memoryLimits := reqs[clientapi.ResourceCPU], limits[clientapi.ResourceCPU], reqs[clientapi.ResourceMemory], limits[clientapi.ResourceMemory]
+	fractionCpuReqs := float64(cpuReqs.MilliValue()) / float64(allocatable.Cpu().MilliValue()) * 100
+	fractionCpuLimits := float64(cpuLimits.MilliValue()) / float64(allocatable.Cpu().MilliValue()) * 100
+	fractionMemoryReqs := float64(memoryReqs.Value()) / float64(allocatable.Memory().Value()) * 100
+	fractionMemoryLimits := float64(memoryLimits.Value()) / float64(allocatable.Memory().Value()) * 100
+
+	return &NodeResource{
+		cpuReqs.String(),
+		int64(fractionCpuReqs),
+		cpuLimits.String(),
+		int64(fractionCpuLimits),
+		memoryReqs.String(),
+		int64(fractionMemoryReqs),
+		memoryLimits.String(),
+		int64(fractionMemoryLimits)}, nil
+}
+
+func getPodsTotalRequestsAndLimits(podList *clientapi.PodList) (reqs map[clientapi.ResourceName]resource.Quantity, limits map[clientapi.ResourceName]resource.Quantity, err error) {
+	reqs, limits = map[clientapi.ResourceName]resource.Quantity{}, map[clientapi.ResourceName]resource.Quantity{}
+	for _, pod := range podList.Items {
+		podReqs, podLimits, err := clientapi.PodRequestsAndLimits(&pod)
+		if err != nil {
+			return nil, nil, err
+		}
+		for podReqName, podReqValue := range podReqs {
+			if value, ok := reqs[podReqName]; !ok {
+				reqs[podReqName] = *podReqValue.Copy()
+			} else {
+				value.Add(podReqValue)
+				reqs[podReqName] = value
+			}
+		}
+		for podLimitName, podLimitValue := range podLimits {
+			if value, ok := limits[podLimitName]; !ok {
+				limits[podLimitName] = *podLimitValue.Copy()
+			} else {
+				value.Add(podLimitValue)
+				limits[podLimitName] = value
+			}
+		}
+	}
+	return
 }
