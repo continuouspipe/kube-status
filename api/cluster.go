@@ -14,6 +14,7 @@ import (
 	"k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset"
 	"k8s.io/kubernetes/pkg/client/unversioned/clientcmd"
 	clientcmdapi "k8s.io/kubernetes/pkg/client/unversioned/clientcmd/api"
+	"k8s.io/kubernetes/pkg/fields"
 )
 
 const ClusterFullStatusUrlPath = "/cluster/full-status"
@@ -136,7 +137,16 @@ func (h ClusterFullStatusH) Handle(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		podList, err := clientset.Core().Pods(node.GetNamespace()).List(kubernetesapi.ListOptions{})
+		fieldSelector, err := fields.ParseSelector("spec.nodeName=" + node.GetName() + ",status.phase!=" + string(kubernetesapi.PodSucceeded) + ",status.phase!=" + string(kubernetesapi.PodFailed))
+		if err != nil {
+			err = fmt.Errorf("error when parsing the list option fields, details %s ", err.Error())
+			glog.Error(err)
+			glog.Flush()
+			respondWithError(w, err, http.StatusInternalServerError)
+			return
+		}
+
+		nodeNonTerminatedPodsList, err := clientset.Core().Pods(node.GetNamespace()).List(kubernetesapi.ListOptions{FieldSelector: fieldSelector})
 		if err != nil {
 			err = fmt.Errorf("error when fetching the list of pods for the namespace %s, details %s ", node.GetNamespace(), err.Error())
 			glog.Error(err)
@@ -144,7 +154,7 @@ func (h ClusterFullStatusH) Handle(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		nodeResources, err := getNodeResource(podList, &node)
+		nodeResources, err := getNodeResource(nodeNonTerminatedPodsList, &node)
 
 		statusNodes = append(statusNodes, ClusterFullStatusNode{
 			node.Name,
