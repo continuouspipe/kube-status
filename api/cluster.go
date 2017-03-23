@@ -3,8 +3,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
-	"github.com/golang/glog"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -80,20 +78,14 @@ func NewClusterFullStatusH() *ClusterFullStatusH {
 func (h ClusterFullStatusH) Handle(w http.ResponseWriter, r *http.Request) {
 	resBodyData, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		err := fmt.Errorf("error when reading the request body %s, details %s ", r.Body, err.Error())
-		glog.Error(err.Error())
-		glog.Flush()
-		respondWithError(w, err, http.StatusBadRequest)
+		logAndRespondWithError(w, http.StatusBadRequest, "error when reading the request body %s, details %s ", r.Body, err.Error())
 		return
 	}
 
 	requestedCluster := ClusterRequested{}
 	err = json.Unmarshal(resBodyData, &requestedCluster)
 	if err != nil {
-		err = fmt.Errorf("error when unmarshalling the request body json %s, details %s ", r.Body, err.Error())
-		glog.Error(err)
-		glog.Flush()
-		respondWithError(w, err, http.StatusBadRequest)
+		logAndRespondWithError(w, http.StatusBadRequest, "error when unmarshalling the request body json %s, details %s ", r.Body, err.Error())
 		return
 	}
 
@@ -119,28 +111,19 @@ func (h ClusterFullStatusH) Handle(w http.ResponseWriter, r *http.Request) {
 
 	restConfig, err := clientConfig.ClientConfig()
 	if err != nil {
-		err = fmt.Errorf("error when creating the rest config, details %s ", err.Error())
-		glog.Error(err)
-		glog.Flush()
-		respondWithError(w, err, http.StatusInternalServerError)
+		logAndRespondWithError(w, http.StatusInternalServerError, "error when creating the rest config, details %s ", err.Error())
 		return
 	}
 
 	clientset, err := internalclientset.NewForConfig(restConfig)
 	if err != nil {
-		err = fmt.Errorf("error when creating the client api, details %s ", err.Error())
-		glog.Error(err)
-		glog.Flush()
-		respondWithError(w, err, http.StatusInternalServerError)
+		logAndRespondWithError(w, http.StatusInternalServerError, "error when creating the client api, details %s ", err.Error())
 		return
 	}
 
 	nodes, err := clientset.Core().Nodes().List(kubernetesapi.ListOptions{})
 	if err != nil {
-		err = fmt.Errorf("error when getting the node list, details %s ", err.Error())
-		glog.Error(err)
-		glog.Flush()
-		respondWithError(w, err, http.StatusInternalServerError)
+		logAndRespondWithError(w, http.StatusInternalServerError, "error when getting the node list, details %s ", err.Error())
 		return
 	}
 
@@ -155,18 +138,13 @@ func (h ClusterFullStatusH) Handle(w http.ResponseWriter, r *http.Request) {
 
 		fieldSelector, err := fields.ParseSelector("spec.nodeName=" + node.GetName() + ",status.phase!=" + string(kubernetesapi.PodSucceeded) + ",status.phase!=" + string(kubernetesapi.PodFailed))
 		if err != nil {
-			err = fmt.Errorf("error when parsing the list option fields, details %s ", err.Error())
-			glog.Error(err)
-			glog.Flush()
-			respondWithError(w, err, http.StatusInternalServerError)
+			logAndRespondWithError(w, http.StatusInternalServerError, "error when parsing the list option fields, details %s ", err.Error())
 			return
 		}
 
 		nodeNonTerminatedPodsList, err := clientset.Core().Pods(node.GetNamespace()).List(kubernetesapi.ListOptions{FieldSelector: fieldSelector})
 		if err != nil {
-			err = fmt.Errorf("error when fetching the list of pods for the namespace %s, details %s ", node.GetNamespace(), err.Error())
-			glog.Error(err)
-			glog.Flush()
+			logAndRespondWithError(w, http.StatusInternalServerError, "error when fetching the list of pods for the namespace %s, details %s ", node.GetNamespace(), err.Error())
 			continue
 		}
 
@@ -230,10 +208,7 @@ func (h ClusterFullStatusH) Handle(w http.ResponseWriter, r *http.Request) {
 
 	respBody, err := json.Marshal(statusResponse)
 	if err != nil {
-		err = fmt.Errorf("error when marshalling the response body json %s, details %s ", respBody, err.Error())
-		glog.Error(err)
-		glog.Flush()
-		respondWithError(w, err, http.StatusBadRequest)
+		logAndRespondWithError(w, http.StatusBadRequest, "error when marshalling the response body json %s, details %s ", respBody, err.Error())
 		return
 	}
 
