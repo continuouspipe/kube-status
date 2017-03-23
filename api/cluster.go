@@ -3,6 +3,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	kubernetesapi "k8s.io/kubernetes/pkg/api"
 	"k8s.io/kubernetes/pkg/api/resource"
@@ -69,6 +70,7 @@ type ClusterFullStatusPod struct {
 	CreationTimestamp string                       `json:"creationTimestamp"`
 	IsReady           bool                         `json:"isReady"`
 	Containers        []ClusterFullStatusContainer `json:"containers"`
+	Events            []kubernetesapi.Event        `json:"events"`
 }
 
 type ClusterFullStatusContainer struct {
@@ -141,13 +143,17 @@ func (h ClusterFullStatusH) Handle(w http.ResponseWriter, r *http.Request) {
 
 	statusCluster := getStatusCluster()
 	statusNodes := getStatusNodes(w, podLists, nodes)
-	statusPods := getStatusPods(podLists)
+	statusPods, err := getStatusPods(w, clientset, podLists)
+	if err != nil {
+		logAndRespondWithError(w, http.StatusInternalServerError, "error when getting the node list, details %s ", err.Error())
+		return
+	}
 
 	//Build the full status response
 	statusResponse := &ClusterFullStatusResponse{
 		statusCluster,
 		statusNodes,
-		statusPods,
+		*statusPods,
 	}
 
 	respBody, err := json.Marshal(statusResponse)
@@ -245,7 +251,7 @@ func getStatusNodes(w http.ResponseWriter, podLists map[string]*kubernetesapi.Po
 	return statusNodes
 }
 
-func getStatusPods(podLists map[string]*kubernetesapi.PodList) map[string][]ClusterFullStatusPod {
+func getStatusPods(w http.ResponseWriter, clientset *internalclientset.Clientset, podLists map[string]*kubernetesapi.PodList) (*map[string][]ClusterFullStatusPod, error) {
 	statusPods := make(map[string][]ClusterFullStatusPod)
 	for _, podList := range podLists {
 		for _, pod := range podList.Items {
@@ -281,16 +287,39 @@ func getStatusPods(podLists map[string]*kubernetesapi.PodList) map[string][]Clus
 				statusContainers = append(statusContainers, containerStatus)
 			}
 
+			eventItems := []kubernetesapi.Event{}
+			isPodReady := kubernetesapi.IsPodReady(&pod)
+
+			//Getting the list of events for each pod takes a while, so we only fetch it for the pods that are not ready
+			if isPodReady == false {
+				nodeWithEvents, err := clientset.Core().Pods(pod.GetNamespace()).Get(pod.GetName())
+				if err != nil {
+					return nil, fmt.Errorf("Unable to get pod with events %s", pod.GetName())
+				}
+				ref, err := kubernetesapi.GetReference(nodeWithEvents)
+				if err != nil {
+					return nil, fmt.Errorf("Unable to construct reference to '%#v': %v", pod, err)
+				}
+
+				ref.Kind = ""
+				events, err := clientset.Core().Events(pod.GetNamespace()).Search(ref)
+				if err != nil {
+					return nil, fmt.Errorf("Unable to get events for pod %s", pod.GetName())
+				}
+				eventItems = events.Items
+			}
+
 			statusPods[pod.GetNamespace()] = append(statusPods[pod.GetNamespace()], ClusterFullStatusPod{
 				pod.GetName(),
 				string(pod.Status.Phase),
 				pod.GetCreationTimestamp().String(),
-				kubernetesapi.IsPodReady(&pod),
+				isPodReady,
 				statusContainers,
+				eventItems,
 			})
 		}
 	}
-	return statusPods
+	return &statusPods, nil
 }
 
 func describeContainerState(state kubernetesapi.ContainerState) string {
