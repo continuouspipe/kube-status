@@ -33,12 +33,12 @@ type ClusterFullStatusResponse struct {
 }
 
 type ClusterFullStatusResources struct {
-	Cpu                ClusterFullStatusRequestLimits      `json:"cpu"`
-	Memory             ClusterFullStatusRequestLimits      `json:"memory"`
-	PercentOfAvailable ClusterFullStatusPercentOfAvailable `json:"percentOfAvailable"`
+	Cpu                ClusterFullStatusRequestLimits          `json:"cpu"`
+	Memory             ClusterFullStatusRequestLimits          `json:"memory"`
+	PercentOfAvailable ClusterFullStatusRequestLimitsCpuMemory `json:"percentOfAvailable"`
 }
 
-type ClusterFullStatusPercentOfAvailable struct {
+type ClusterFullStatusRequestLimitsCpuMemory struct {
 	Cpu    ClusterFullStatusRequestLimits `json:"cpu"`
 	Memory ClusterFullStatusRequestLimits `json:"memory"`
 }
@@ -72,11 +72,11 @@ type ClusterFullStatusPod struct {
 }
 
 type ClusterFullStatusContainer struct {
-	Name         string                     `json:"name"`
-	State        string                     `json:"state"`
-	IsReady      bool                       `json:"isReady"`
-	RestartCount int32                      `json:"restartCount"`
-	Resources    ClusterFullStatusResources `json:"resources"`
+	Name         string                                  `json:"name"`
+	State        string                                  `json:"state"`
+	IsReady      bool                                    `json:"isReady"`
+	RestartCount int32                                   `json:"restartCount"`
+	Resources    ClusterFullStatusRequestLimitsCpuMemory `json:"resources"`
 }
 
 type ClusterFullStatusH struct{}
@@ -164,7 +164,7 @@ func getStatusCluster() ClusterFullStatusResources {
 	return ClusterFullStatusResources{
 		ClusterFullStatusRequestLimits{},
 		ClusterFullStatusRequestLimits{},
-		ClusterFullStatusPercentOfAvailable{
+		ClusterFullStatusRequestLimitsCpuMemory{
 			ClusterFullStatusRequestLimits{},
 			ClusterFullStatusRequestLimits{},
 		},
@@ -220,7 +220,7 @@ func getStatusNodes(w http.ResponseWriter, podLists map[string]*kubernetesapi.Po
 					nodeResources.memoryReqs,
 					nodeResources.memoryLimits,
 				},
-				ClusterFullStatusPercentOfAvailable{
+				ClusterFullStatusRequestLimitsCpuMemory{
 					ClusterFullStatusRequestLimits{
 						strconv.FormatInt(nodeResources.fractionCpuReqs, 10),
 						strconv.FormatInt(nodeResources.fractionCpuLimits, 10),
@@ -267,7 +267,7 @@ func getStatusPods(podLists map[string]*kubernetesapi.PodList) map[string][]Clus
 					containerStatus.RestartCount = status.RestartCount
 				}
 
-				containerStatus.Resources = ClusterFullStatusResources{
+				containerStatus.Resources = ClusterFullStatusRequestLimitsCpuMemory{
 					Cpu: ClusterFullStatusRequestLimits{
 						Request: container.Resources.Requests.Cpu().String(),
 						Limits:  container.Resources.Limits.Cpu().String(),
