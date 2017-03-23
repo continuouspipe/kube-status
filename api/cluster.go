@@ -4,6 +4,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/golang/glog"
 	"io/ioutil"
 	kubernetesapi "k8s.io/kubernetes/pkg/api"
 	"k8s.io/kubernetes/pkg/api/resource"
@@ -139,11 +140,12 @@ func (h ClusterFullStatusH) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//TODO: do not pass the html writer to this sub-function but let them return an error
 	podLists := getPodListByNode(w, clientset, nodes)
-
 	statusCluster := getStatusCluster()
 	statusNodes := getStatusNodes(w, podLists, nodes)
-	statusPods, err := getStatusPods(w, clientset, podLists)
+	podsEvents := getPodsEvents(clientset, podLists)
+	statusPods, err := getStatusPods(podLists, podsEvents)
 	if err != nil {
 		logAndRespondWithError(w, http.StatusInternalServerError, "error when getting the node list, details %s ", err.Error())
 		return
@@ -251,7 +253,65 @@ func getStatusNodes(w http.ResponseWriter, podLists map[string]*kubernetesapi.Po
 	return statusNodes
 }
 
-func getStatusPods(w http.ResponseWriter, clientset *internalclientset.Clientset, podLists map[string]*kubernetesapi.PodList) (*map[string][]ClusterFullStatusPod, error) {
+type podEventWrapper struct {
+	name   string
+	err    error
+	events []kubernetesapi.Event
+}
+
+func getPodsEvents(clientset *internalclientset.Clientset, podLists map[string]*kubernetesapi.PodList) map[string][]kubernetesapi.Event {
+	eventItemsRequestedCount := 0
+	eventsChan := make(chan podEventWrapper)
+	defer close(eventsChan)
+
+	for _, podList := range podLists {
+		for _, pod := range podList.Items {
+			isPodReady := kubernetesapi.IsPodReady(&pod)
+			//only fetch the events for the pods that are not ready
+			if isPodReady == false {
+				eventItemsRequestedCount = eventItemsRequestedCount + 1
+				go getEvents(clientset, pod, eventsChan)
+			}
+		}
+	}
+	podEventsMap := make(map[string][]kubernetesapi.Event)
+	var podEvent podEventWrapper
+	for i := 0; i < eventItemsRequestedCount; i++ {
+		podEvent = <-eventsChan
+		if podEvent.err != nil {
+			glog.V(4).Infof("it was not possible to fetch the events for the pod %s, error %s", podEvent.name, podEvent.err.Error())
+			glog.Flush()
+			continue
+		}
+		podEventsMap[podEvent.name] = podEvent.events
+	}
+	return podEventsMap
+}
+
+func getEvents(clientset *internalclientset.Clientset, pod kubernetesapi.Pod, eventsChan chan<- podEventWrapper) {
+	nodeWithEvents, err := clientset.Core().Pods(pod.GetNamespace()).Get(pod.GetName())
+	if err != nil {
+		eventsChan <- podEventWrapper{err: fmt.Errorf("Unable to get pod with events %s", pod.GetName())}
+	}
+	ref, err := kubernetesapi.GetReference(nodeWithEvents)
+	if err != nil {
+		eventsChan <- podEventWrapper{err: fmt.Errorf("Unable to construct reference to '%#v': %v", pod, err)}
+
+	}
+
+	ref.Kind = ""
+	e, err := clientset.Core().Events(pod.GetNamespace()).Search(ref)
+	if err != nil {
+		eventsChan <- podEventWrapper{err: fmt.Errorf("Unable to get events for pod %s", pod.GetName())}
+	}
+
+	eventsChan <- podEventWrapper{
+		name:   pod.GetName(),
+		events: e.Items,
+	}
+}
+
+func getStatusPods(podLists map[string]*kubernetesapi.PodList, podsEvents map[string][]kubernetesapi.Event) (*map[string][]ClusterFullStatusPod, error) {
 	statusPods := make(map[string][]ClusterFullStatusPod)
 	for _, podList := range podLists {
 		for _, pod := range podList.Items {
@@ -286,28 +346,7 @@ func getStatusPods(w http.ResponseWriter, clientset *internalclientset.Clientset
 
 				statusContainers = append(statusContainers, containerStatus)
 			}
-
-			eventItems := []kubernetesapi.Event{}
 			isPodReady := kubernetesapi.IsPodReady(&pod)
-
-			//Getting the list of events for each pod takes a while, so we only fetch it for the pods that are not ready
-			if isPodReady == false {
-				nodeWithEvents, err := clientset.Core().Pods(pod.GetNamespace()).Get(pod.GetName())
-				if err != nil {
-					return nil, fmt.Errorf("Unable to get pod with events %s", pod.GetName())
-				}
-				ref, err := kubernetesapi.GetReference(nodeWithEvents)
-				if err != nil {
-					return nil, fmt.Errorf("Unable to construct reference to '%#v': %v", pod, err)
-				}
-
-				ref.Kind = ""
-				events, err := clientset.Core().Events(pod.GetNamespace()).Search(ref)
-				if err != nil {
-					return nil, fmt.Errorf("Unable to get events for pod %s", pod.GetName())
-				}
-				eventItems = events.Items
-			}
 
 			statusPods[pod.GetNamespace()] = append(statusPods[pod.GetNamespace()], ClusterFullStatusPod{
 				pod.GetName(),
@@ -315,7 +354,7 @@ func getStatusPods(w http.ResponseWriter, clientset *internalclientset.Clientset
 				pod.GetCreationTimestamp().String(),
 				isPodReady,
 				statusContainers,
-				eventItems,
+				podsEvents[pod.GetName()],
 			})
 		}
 	}
