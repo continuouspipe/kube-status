@@ -67,7 +67,13 @@ type ClusterFullStatusPod struct {
 	Name              string `json:"name"`
 	Status            string `json:"status"`
 	CreationTimestamp string `json:"creationTimestamp"`
-	IsReady           bool   "json:isReady"
+	IsReady           bool   `json:"isReady"`
+}
+
+type ClusterFullStatusContainer struct {
+	Name         string                     `json:"name"`
+	RestartCount string                     `json:"restartCount"`
+	Resources    ClusterFullStatusResources `json:"resources"`
 }
 
 type ClusterFullStatusH struct{}
