@@ -67,6 +67,7 @@ type ClusterFullStatusPod struct {
 	Name              string `json:"name"`
 	Status            string `json:"status"`
 	CreationTimestamp string `json:"creationTimestamp"`
+	IsReady           bool   "json:isReady"
 }
 
 type ClusterFullStatusH struct{}
@@ -131,7 +132,7 @@ func (h ClusterFullStatusH) Handle(w http.ResponseWriter, r *http.Request) {
 
 	statusCluster := getStatusCluster()
 	statusNodes := getStatusNodes(w, podLists, nodes)
-	statusPods := getStatusPods(w, podLists, nodes)
+	statusPods := getStatusPods(podLists)
 
 	//Build the full status response
 	statusResponse := &ClusterFullStatusResponse{
@@ -235,7 +236,7 @@ func getStatusNodes(w http.ResponseWriter, podLists map[string]*kubernetesapi.Po
 	return statusNodes
 }
 
-func getStatusPods(w http.ResponseWriter, podLists map[string]*kubernetesapi.PodList, nodes *kubernetesapi.NodeList) map[string][]ClusterFullStatusPod {
+func getStatusPods(podLists map[string]*kubernetesapi.PodList) map[string][]ClusterFullStatusPod {
 	statusPods := make(map[string][]ClusterFullStatusPod)
 	for _, podList := range podLists {
 		for _, pod := range podList.Items {
@@ -243,6 +244,7 @@ func getStatusPods(w http.ResponseWriter, podLists map[string]*kubernetesapi.Pod
 				Name:              pod.GetName(),
 				Status:            string(pod.Status.Phase),
 				CreationTimestamp: pod.GetCreationTimestamp().String(),
+				IsReady:           kubernetesapi.IsPodReady(&pod),
 			})
 		}
 	}
