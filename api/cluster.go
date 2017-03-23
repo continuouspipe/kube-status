@@ -267,6 +267,17 @@ func getStatusPods(podLists map[string]*kubernetesapi.PodList) map[string][]Clus
 					containerStatus.RestartCount = status.RestartCount
 				}
 
+				containerStatus.Resources = ClusterFullStatusResources{
+					Cpu: ClusterFullStatusRequestLimits{
+						Request: container.Resources.Requests.Cpu().String(),
+						Limits:  container.Resources.Limits.Cpu().String(),
+					},
+					Memory: ClusterFullStatusRequestLimits{
+						Request: container.Resources.Requests.Memory().String(),
+						Limits:  container.Resources.Limits.Memory().String(),
+					},
+				}
+
 				statusContainers = append(statusContainers, containerStatus)
 			}
 
