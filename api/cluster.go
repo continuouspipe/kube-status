@@ -4,15 +4,14 @@ package api
 import (
 	"encoding/json"
 	"io/ioutil"
-	"net/http"
-	"strconv"
-
 	kubernetesapi "k8s.io/kubernetes/pkg/api"
 	"k8s.io/kubernetes/pkg/api/resource"
 	"k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset"
 	"k8s.io/kubernetes/pkg/client/unversioned/clientcmd"
 	clientcmdapi "k8s.io/kubernetes/pkg/client/unversioned/clientcmd/api"
 	"k8s.io/kubernetes/pkg/fields"
+	"net/http"
+	"strconv"
 )
 
 const ClusterFullStatusUrlPath = "/cluster/full-status"
@@ -129,34 +128,35 @@ func (h ClusterFullStatusH) Handle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	statusNodes := []ClusterFullStatusNode{}
-	statusPods := make(map[string][]ClusterFullStatusPod)
+	podLists := make(map[string]*kubernetesapi.PodList)
 
+	//get the pod list
 	for _, node := range nodes.Items {
-		totalConditions := len(node.Status.Conditions)
-		if totalConditions <= 0 {
-			continue
-		}
-
 		fieldSelector, err := fields.ParseSelector("spec.nodeName=" + node.GetName() + ",status.phase!=" + string(kubernetesapi.PodSucceeded) + ",status.phase!=" + string(kubernetesapi.PodFailed))
 		if err != nil {
 			logAndRespondWithError(w, http.StatusInternalServerError, "error when parsing the list option fields, details %s ", err.Error())
 			return
 		}
 
-		nodeNonTerminatedPodsList, err := clientset.Core().Pods(node.GetNamespace()).List(kubernetesapi.ListOptions{FieldSelector: fieldSelector})
+		nodeNonTerminatedPodsList, err := clientset.Core().Pods("").List(kubernetesapi.ListOptions{FieldSelector: fieldSelector})
 		if err != nil {
 			logAndRespondWithError(w, http.StatusInternalServerError, "error when fetching the list of pods for the namespace %s, details %s ", node.GetNamespace(), err.Error())
 			continue
 		}
+		podLists[node.GetName()] = nodeNonTerminatedPodsList
+	}
 
-		nodeResources, err := getNodeResource(nodeNonTerminatedPodsList, &node)
+	//get the node status
+	for _, node := range nodes.Items {
+		totalConditions := len(node.Status.Conditions)
+		if totalConditions <= 0 {
+			continue
+		}
 
-		for _, pod := range nodeNonTerminatedPodsList.Items {
-			statusPods[pod.GetNamespace()] = append(statusPods[pod.GetNamespace()], ClusterFullStatusPod{
-				Name:              pod.GetName(),
-				Status:            string(pod.Status.Phase),
-				CreationTimestamp: pod.GetCreationTimestamp().String(),
-			})
+		nodeResources, err := getNodeResource(podLists[node.GetName()], &node)
+		if err != nil {
+			logAndRespondWithError(w, http.StatusInternalServerError, "error when getting the node resources for namespace %s, details %s ", node.GetNamespace(), err.Error())
+			continue
 		}
 
 		statusNodes = append(statusNodes, ClusterFullStatusNode{
@@ -195,6 +195,19 @@ func (h ClusterFullStatusH) Handle(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
+	//Get the pods status
+	statusPods := make(map[string][]ClusterFullStatusPod)
+	for _, podList := range podLists {
+		for _, pod := range podList.Items {
+			statusPods[pod.GetNamespace()] = append(statusPods[pod.GetNamespace()], ClusterFullStatusPod{
+				Name:              pod.GetName(),
+				Status:            string(pod.Status.Phase),
+				CreationTimestamp: pod.GetCreationTimestamp().String(),
+			})
+		}
+	}
+
+	//Build the full status response
 	statusResponse := &ClusterFullStatusResponse{
 		ClusterFullStatusResources{
 			ClusterFullStatusRequestLimits{},
