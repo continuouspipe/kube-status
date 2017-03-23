@@ -64,15 +64,18 @@ type ClusterFullStatusNode struct {
 }
 
 type ClusterFullStatusPod struct {
-	Name              string `json:"name"`
-	Status            string `json:"status"`
-	CreationTimestamp string `json:"creationTimestamp"`
-	IsReady           bool   `json:"isReady"`
+	Name              string                       `json:"name"`
+	Status            string                       `json:"status"`
+	CreationTimestamp string                       `json:"creationTimestamp"`
+	IsReady           bool                         `json:"isReady"`
+	Containers        []ClusterFullStatusContainer `json:"containers"`
 }
 
 type ClusterFullStatusContainer struct {
 	Name         string                     `json:"name"`
-	RestartCount string                     `json:"restartCount"`
+	State        string                     `json:"state"`
+	IsReady      bool                       `json:"isReady"`
+	RestartCount int32                      `json:"restartCount"`
 	Resources    ClusterFullStatusResources `json:"resources"`
 }
 
@@ -246,15 +249,48 @@ func getStatusPods(podLists map[string]*kubernetesapi.PodList) map[string][]Clus
 	statusPods := make(map[string][]ClusterFullStatusPod)
 	for _, podList := range podLists {
 		for _, pod := range podList.Items {
+			statuses := map[string]kubernetesapi.ContainerStatus{}
+			for _, status := range pod.Status.ContainerStatuses {
+				statuses[status.Name] = status
+			}
+
+			statusContainers := []ClusterFullStatusContainer{}
+			for _, container := range pod.Spec.Containers {
+
+				status, ok := statuses[container.Name]
+
+				containerStatus := ClusterFullStatusContainer{}
+				containerStatus.Name = container.Name
+				if ok {
+					containerStatus.State = describeContainerState(status.State)
+					containerStatus.IsReady = status.Ready
+					containerStatus.RestartCount = status.RestartCount
+				}
+
+				statusContainers = append(statusContainers, containerStatus)
+			}
+
 			statusPods[pod.GetNamespace()] = append(statusPods[pod.GetNamespace()], ClusterFullStatusPod{
-				Name:              pod.GetName(),
-				Status:            string(pod.Status.Phase),
-				CreationTimestamp: pod.GetCreationTimestamp().String(),
-				IsReady:           kubernetesapi.IsPodReady(&pod),
+				pod.GetName(),
+				string(pod.Status.Phase),
+				pod.GetCreationTimestamp().String(),
+				kubernetesapi.IsPodReady(&pod),
+				statusContainers,
 			})
 		}
 	}
 	return statusPods
+}
+
+func describeContainerState(state kubernetesapi.ContainerState) string {
+	switch {
+	case state.Running != nil:
+		return "Running"
+	case state.Terminated != nil:
+		return "Terminated"
+	default:
+		return "Waiting"
+	}
 }
 
 type NodeResource struct {
