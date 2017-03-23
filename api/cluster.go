@@ -65,8 +65,9 @@ type ClusterFullStatusNode struct {
 }
 
 type ClusterFullStatusPod struct {
-	Name   string `json:"name"`
-	Status string `json:"status"`
+	Name              string `json:"name"`
+	Status            string `json:"status"`
+	CreationTimestamp string `json:"creationTimestamp"`
 }
 
 type ClusterFullStatusH struct{}
@@ -152,8 +153,9 @@ func (h ClusterFullStatusH) Handle(w http.ResponseWriter, r *http.Request) {
 
 		for _, pod := range nodeNonTerminatedPodsList.Items {
 			statusPods[pod.GetNamespace()] = append(statusPods[pod.GetNamespace()], ClusterFullStatusPod{
-				pod.GetName(),
-				string(pod.Status.Phase),
+				Name:              pod.GetName(),
+				Status:            string(pod.Status.Phase),
+				CreationTimestamp: pod.GetCreationTimestamp().String(),
 			})
 		}
 
