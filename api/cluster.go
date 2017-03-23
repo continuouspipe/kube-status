@@ -127,7 +127,41 @@ func (h ClusterFullStatusH) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	statusNodes := []ClusterFullStatusNode{}
+	podLists := getPodListByNode(w, clientset, nodes)
+
+	statusCluster := getStatusCluster()
+	statusNodes := getStatusNodes(w, podLists, nodes)
+	statusPods := getStatusPods(w, podLists, nodes)
+
+	//Build the full status response
+	statusResponse := &ClusterFullStatusResponse{
+		statusCluster,
+		statusNodes,
+		statusPods,
+	}
+
+	respBody, err := json.Marshal(statusResponse)
+	if err != nil {
+		logAndRespondWithError(w, http.StatusBadRequest, "error when marshalling the response body json %s, details %s ", respBody, err.Error())
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(respBody)
+}
+
+func getStatusCluster() ClusterFullStatusResources {
+	return ClusterFullStatusResources{
+		ClusterFullStatusRequestLimits{},
+		ClusterFullStatusRequestLimits{},
+		ClusterFullStatusPercentOfAvailable{
+			ClusterFullStatusRequestLimits{},
+			ClusterFullStatusRequestLimits{},
+		},
+	}
+}
+
+func getPodListByNode(w http.ResponseWriter, clientset *internalclientset.Clientset, nodes *kubernetesapi.NodeList) map[string]*kubernetesapi.PodList {
 	podLists := make(map[string]*kubernetesapi.PodList)
 
 	//get the pod list
@@ -135,7 +169,7 @@ func (h ClusterFullStatusH) Handle(w http.ResponseWriter, r *http.Request) {
 		fieldSelector, err := fields.ParseSelector("spec.nodeName=" + node.GetName() + ",status.phase!=" + string(kubernetesapi.PodSucceeded) + ",status.phase!=" + string(kubernetesapi.PodFailed))
 		if err != nil {
 			logAndRespondWithError(w, http.StatusInternalServerError, "error when parsing the list option fields, details %s ", err.Error())
-			return
+			return nil
 		}
 
 		nodeNonTerminatedPodsList, err := clientset.Core().Pods("").List(kubernetesapi.ListOptions{FieldSelector: fieldSelector})
@@ -146,7 +180,11 @@ func (h ClusterFullStatusH) Handle(w http.ResponseWriter, r *http.Request) {
 		podLists[node.GetName()] = nodeNonTerminatedPodsList
 	}
 
-	//get the node status
+	return podLists
+}
+
+func getStatusNodes(w http.ResponseWriter, podLists map[string]*kubernetesapi.PodList, nodes *kubernetesapi.NodeList) []ClusterFullStatusNode {
+	statusNodes := []ClusterFullStatusNode{}
 	for _, node := range nodes.Items {
 		totalConditions := len(node.Status.Conditions)
 		if totalConditions <= 0 {
@@ -194,8 +232,10 @@ func (h ClusterFullStatusH) Handle(w http.ResponseWriter, r *http.Request) {
 			len(node.Status.VolumesInUse),
 		})
 	}
+	return statusNodes
+}
 
-	//Get the pods status
+func getStatusPods(w http.ResponseWriter, podLists map[string]*kubernetesapi.PodList, nodes *kubernetesapi.NodeList) map[string][]ClusterFullStatusPod {
 	statusPods := make(map[string][]ClusterFullStatusPod)
 	for _, podList := range podLists {
 		for _, pod := range podList.Items {
@@ -206,29 +246,7 @@ func (h ClusterFullStatusH) Handle(w http.ResponseWriter, r *http.Request) {
 			})
 		}
 	}
-
-	//Build the full status response
-	statusResponse := &ClusterFullStatusResponse{
-		ClusterFullStatusResources{
-			ClusterFullStatusRequestLimits{},
-			ClusterFullStatusRequestLimits{},
-			ClusterFullStatusPercentOfAvailable{
-				ClusterFullStatusRequestLimits{},
-				ClusterFullStatusRequestLimits{},
-			},
-		},
-		statusNodes,
-		statusPods,
-	}
-
-	respBody, err := json.Marshal(statusResponse)
-	if err != nil {
-		logAndRespondWithError(w, http.StatusBadRequest, "error when marshalling the response body json %s, details %s ", respBody, err.Error())
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Write(respBody)
+	return statusPods
 }
 
 type NodeResource struct {
