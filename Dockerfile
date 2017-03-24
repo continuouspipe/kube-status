@@ -24,4 +24,4 @@ RUN wget https://github.com/Masterminds/glide/releases/download/v0.12.3/glide-v0
     rm -rf /go
 
 # Run the kube-status when the container starts.
-ENTRYPOINT ["/usr/bin/kube-status", "-logtostderr", "-v 5"]
+ENTRYPOINT ["/usr/bin/kube-status", "-logtostderr", "-v", "5"]
