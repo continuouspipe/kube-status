@@ -289,11 +289,7 @@ func getPodsEvents(clientset *internalclientset.Clientset, podLists map[string]*
 }
 
 func getEvents(clientset *internalclientset.Clientset, pod kubernetesapi.Pod, eventsChan chan<- podEventWrapper) {
-	nodeWithEvents, err := clientset.Core().Pods(pod.GetNamespace()).Get(pod.GetName())
-	if err != nil {
-		eventsChan <- podEventWrapper{err: fmt.Errorf("Unable to get pod with events %s", pod.GetName())}
-	}
-	ref, err := kubernetesapi.GetReference(nodeWithEvents)
+	ref, err := kubernetesapi.GetReference(&pod)
 	if err != nil {
 		eventsChan <- podEventWrapper{err: fmt.Errorf("Unable to construct reference to '%#v': %v", pod, err)}
 
