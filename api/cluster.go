@@ -4,7 +4,6 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/golang/glog"
 	"io/ioutil"
 	kubernetesapi "k8s.io/kubernetes/pkg/api"
 	"k8s.io/kubernetes/pkg/api/resource"
@@ -140,11 +139,25 @@ func (h ClusterFullStatusH) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//TODO: do not pass the html writer to this sub-function but let them return an error
-	podLists := getPodListByNode(w, clientset, nodes)
+	podLists, errList := getPodListByNode(clientset, nodes)
+	if errList.HasErrors() {
+		logErrorsAndRespondWithError(w, http.StatusInternalServerError, *errList)
+		return
+	}
+
 	statusCluster := getStatusCluster()
-	statusNodes := getStatusNodes(w, podLists, nodes)
-	podsEvents := getPodsEvents(clientset, podLists)
+	statusNodes, errList := getStatusNodes(podLists, nodes)
+	if errList.HasErrors() {
+		logErrorsAndRespondWithError(w, http.StatusInternalServerError, *errList)
+		return
+	}
+
+	podsEvents, errList := getPodsEvents(clientset, podLists)
+	if errList.HasErrors() {
+		logErrorsAndRespondWithError(w, http.StatusInternalServerError, *errList)
+		return
+	}
+
 	statusPods, err := getStatusPods(podLists, podsEvents)
 	if err != nil {
 		logAndRespondWithError(w, http.StatusInternalServerError, "error when getting the node list, details %s ", err.Error())
@@ -179,39 +192,45 @@ func getStatusCluster() ClusterFullStatusResources {
 	}
 }
 
-func getPodListByNode(w http.ResponseWriter, clientset *internalclientset.Clientset, nodes *kubernetesapi.NodeList) map[string]*kubernetesapi.PodList {
+func getPodListByNode(clientset *internalclientset.Clientset, nodes *kubernetesapi.NodeList) (*map[string]*kubernetesapi.PodList, *ErrorList) {
 	podLists := make(map[string]*kubernetesapi.PodList)
+	el := ErrorList{}
 
 	//get the pod list
 	for _, node := range nodes.Items {
 		fieldSelector, err := fields.ParseSelector("spec.nodeName=" + node.GetName() + ",status.phase!=" + string(kubernetesapi.PodSucceeded) + ",status.phase!=" + string(kubernetesapi.PodFailed))
 		if err != nil {
-			logAndRespondWithError(w, http.StatusInternalServerError, "error when parsing the list option fields, details %s ", err.Error())
-			return nil
+			el.Add(err)
+			el.Add(fmt.Errorf("error when parsing the list option fields"))
+			return nil, &el
 		}
 
 		nodeNonTerminatedPodsList, err := clientset.Core().Pods("").List(kubernetesapi.ListOptions{FieldSelector: fieldSelector})
 		if err != nil {
-			logAndRespondWithError(w, http.StatusInternalServerError, "error when fetching the list of pods for the namespace %s, details %s ", node.GetNamespace(), err.Error())
+			el.Add(err)
+			el.Add(fmt.Errorf("error when fetching the list of pods for the namespace %s, details %s ", node.GetNamespace(), err.Error()))
 			continue
 		}
 		podLists[node.GetName()] = nodeNonTerminatedPodsList
 	}
 
-	return podLists
+	return &podLists, &el
 }
 
-func getStatusNodes(w http.ResponseWriter, podLists map[string]*kubernetesapi.PodList, nodes *kubernetesapi.NodeList) []ClusterFullStatusNode {
+func getStatusNodes(podLists *map[string]*kubernetesapi.PodList, nodes *kubernetesapi.NodeList) ([]ClusterFullStatusNode, *ErrorList) {
 	statusNodes := []ClusterFullStatusNode{}
+	el := ErrorList{}
+
 	for _, node := range nodes.Items {
 		totalConditions := len(node.Status.Conditions)
 		if totalConditions <= 0 {
 			continue
 		}
 
-		nodeResources, err := getNodeResource(podLists[node.GetName()], &node)
+		nodeResources, err := getNodeResource((*podLists)[node.GetName()], &node)
 		if err != nil {
-			logAndRespondWithError(w, http.StatusInternalServerError, "error when getting the node resources for namespace %s, details %s ", node.GetNamespace(), err.Error())
+			el.Add(err)
+			el.Add(fmt.Errorf("error when getting the node resources for namespace %s", node.GetNamespace()))
 			continue
 		}
 
@@ -250,7 +269,7 @@ func getStatusNodes(w http.ResponseWriter, podLists map[string]*kubernetesapi.Po
 			len(node.Status.VolumesInUse),
 		})
 	}
-	return statusNodes
+	return statusNodes, &el
 }
 
 type podEventWrapper struct {
@@ -259,12 +278,13 @@ type podEventWrapper struct {
 	events []kubernetesapi.Event
 }
 
-func getPodsEvents(clientset *internalclientset.Clientset, podLists map[string]*kubernetesapi.PodList) map[string][]kubernetesapi.Event {
+func getPodsEvents(clientset *internalclientset.Clientset, podLists *map[string]*kubernetesapi.PodList) (map[string][]kubernetesapi.Event, *ErrorList) {
+	el := &ErrorList{}
 	eventItemsRequestedCount := 0
 	eventsChan := make(chan podEventWrapper)
 	defer close(eventsChan)
 
-	for _, podList := range podLists {
+	for _, podList := range *podLists {
 		for _, pod := range podList.Items {
 			isPodReady := kubernetesapi.IsPodReady(&pod)
 			//only fetch the events for the pods that are not ready
@@ -279,13 +299,13 @@ func getPodsEvents(clientset *internalclientset.Clientset, podLists map[string]*
 	for i := 0; i < eventItemsRequestedCount; i++ {
 		podEvent = <-eventsChan
 		if podEvent.err != nil {
-			glog.V(4).Infof("it was not possible to fetch the events for the pod %s, error %s", podEvent.name, podEvent.err.Error())
-			glog.Flush()
+			el.Add(podEvent.err)
+			el.Add(fmt.Errorf("it was not possible to fetch the events for the pod %s", podEvent.name))
 			continue
 		}
 		podEventsMap[podEvent.name] = podEvent.events
 	}
-	return podEventsMap
+	return podEventsMap, el
 }
 
 func getEvents(clientset *internalclientset.Clientset, pod kubernetesapi.Pod, eventsChan chan<- podEventWrapper) {
@@ -307,9 +327,9 @@ func getEvents(clientset *internalclientset.Clientset, pod kubernetesapi.Pod, ev
 	}
 }
 
-func getStatusPods(podLists map[string]*kubernetesapi.PodList, podsEvents map[string][]kubernetesapi.Event) (*map[string][]ClusterFullStatusPod, error) {
+func getStatusPods(podLists *map[string]*kubernetesapi.PodList, podsEvents map[string][]kubernetesapi.Event) (*map[string][]ClusterFullStatusPod, error) {
 	statusPods := make(map[string][]ClusterFullStatusPod)
-	for _, podList := range podLists {
+	for _, podList := range *podLists {
 		for _, pod := range podList.Items {
 			statuses := map[string]kubernetesapi.ContainerStatus{}
 			for _, status := range pod.Status.ContainerStatuses {
