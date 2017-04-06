@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/continuouspipe/kube-status/api"
+	"github.com/continuouspipe/kube-status/datasnapshots"
 	"github.com/golang/glog"
 	"github.com/gorilla/mux"
 	"net/http"
@@ -27,6 +28,9 @@ func main() {
 		fmt.Printf("Cannot parse URL: %v\n", err.Error())
 		os.Exit(1)
 	}
+
+	snapshotHandler := datasnapshots.NewDataSnapshotHandler()
+	go snapshotHandler.Handle()
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", rootHandle)
