@@ -16,6 +16,18 @@ type ClusterListProvider interface {
 //CPClusterList returns a list of CP Clusters
 type CPClusterList struct{}
 
+//NewCPClusterList default ctor for CPClusterList
+func NewCPClusterList() *CPClusterList {
+	return &CPClusterList{}
+}
+
+//Clusters returns a list of clusters taken using the CP Api
 func (c CPClusterList) Clusters() []Cluster {
-	//TODO: return a list of Clusters
+	return []Cluster{
+		{
+			"http://127.0.0.1",
+			"",
+			"",
+		},
+	}
 }

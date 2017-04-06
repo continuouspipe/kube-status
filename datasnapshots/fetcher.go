@@ -4,6 +4,7 @@ package datasnapshots
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/continuouspipe/kube-status/clustersprovider"
 	"github.com/continuouspipe/kube-status/errors"
 	kubernetesapi "k8s.io/kubernetes/pkg/api"
 	"k8s.io/kubernetes/pkg/api/resource"
@@ -13,13 +14,6 @@ import (
 	"k8s.io/kubernetes/pkg/fields"
 	"strconv"
 )
-
-//ClusterRequested contains the information required to fetch the cluster status
-type ClusterRequested struct {
-	Address  string
-	Username string
-	Password string
-}
 
 //ClusterFullStatusResponse top level of the individual cluster status response
 type ClusterFullStatusResponse struct {
@@ -85,13 +79,13 @@ type ClusterFullStatusContainer struct {
 
 //ClusterSnapshooter takes the full status of one or more clusters and returns it as a json formatted string
 type ClusterSnapshooter interface {
-	Add(cluster ClusterRequested)
+	Add(cluster clustersprovider.Cluster)
 	Fetch() ([]byte, error)
 }
 
 //ClusterSnapshot takes the full status of one or more clusters and returns it as a json formatted string
 type ClusterSnapshot struct {
-	clusters        []ClusterRequested
+	clusters        []clustersprovider.Cluster
 	clusterStatuses []ClusterFullStatusResponse
 }
 
@@ -100,8 +94,8 @@ func NewClusterSnapshot() *ClusterSnapshot {
 	return &ClusterSnapshot{}
 }
 
-//Add appends a new ClusterRequested struct to the stored list
-func (s *ClusterSnapshot) Add(cluster ClusterRequested) {
+//Add appends a new clustersprovider.Cluster struct to the stored list
+func (s *ClusterSnapshot) Add(cluster clustersprovider.Cluster) {
 	s.clusters = append(s.clusters, cluster)
 }
 
