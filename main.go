@@ -1,9 +1,18 @@
+// Package main starts up the snapshot handler as a separate go routine and the http server after all handled routes are
+// added.
+//
+// The application uses the following enviornments variables:
+//
+//  KUBE_STATUS_LISTEN_ADDRESS //e.g.: https://localhost:80
+//  GOOGLE_CLOUD_PLATFORM_BUCKET_NAME //e.g.: kube-status-inviqa-bucket
+//
 package main
 
 import (
 	"flag"
 	"fmt"
 	"github.com/continuouspipe/kube-status/api"
+	"github.com/continuouspipe/kube-status/clustersprovider"
 	"github.com/continuouspipe/kube-status/datasnapshots"
 	"github.com/golang/glog"
 	"github.com/gorilla/mux"
@@ -29,7 +38,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	snapshotHandler := datasnapshots.NewDataSnapshotHandler()
+	snapshotHandler := datasnapshots.NewDataSnapshotHandler(
+		clustersprovider.NewCPClusterList(),
+		datasnapshots.NewClusterSnapshot(),
+	)
 	go snapshotHandler.Handle()
 
 	r := mux.NewRouter()

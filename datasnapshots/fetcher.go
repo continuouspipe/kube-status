@@ -80,7 +80,7 @@ type ClusterFullStatusContainer struct {
 //ClusterSnapshooter takes the full status of one or more clusters and returns it as a json formatted string
 type ClusterSnapshooter interface {
 	Add(cluster clustersprovider.Cluster)
-	Fetch() ([]byte, error)
+	Fetch() ([]byte, errors.ErrorListProvider)
 }
 
 //ClusterSnapshot takes the full status of one or more clusters and returns it as a json formatted string
@@ -100,8 +100,12 @@ func (s *ClusterSnapshot) Add(cluster clustersprovider.Cluster) {
 }
 
 //Fetch retrieves the cluster statuses for all the clusters
-func (s *ClusterSnapshot) Fetch() ([]byte, error) {
+func (s *ClusterSnapshot) Fetch() ([]byte, errors.ErrorListProvider) {
+	el := errors.NewErrorList()
+	el.AddErrorf("An error occured when Fetching the cluster statuses")
+
 	for _, requestedCluster := range s.clusters {
+
 		ctx := clientcmdapi.NewContext()
 		cfg := clientcmdapi.NewConfig()
 		authInfo := clientcmdapi.NewAuthInfo()
@@ -124,17 +128,23 @@ func (s *ClusterSnapshot) Fetch() ([]byte, error) {
 
 		restConfig, err := clientConfig.ClientConfig()
 		if err != nil {
-			return []byte{}, fmt.Errorf("error when creating the rest config, details %s ", err.Error())
+			el.AddErrorf("error when creating the rest config")
+			el.Add(err)
+			return []byte{}, el
 		}
 
 		clientset, err := internalclientset.NewForConfig(restConfig)
 		if err != nil {
-			return []byte{}, fmt.Errorf("error when creating the client api, details %s ", err.Error())
+			el.AddErrorf("error when creating the client api")
+			el.Add(err)
+			return []byte{}, el
 		}
 
 		nodes, err := clientset.Core().Nodes().List(kubernetesapi.ListOptions{})
 		if err != nil {
-			return []byte{}, fmt.Errorf("error when getting the node list, details %s ", err.Error())
+			el.AddErrorf("error when getting the node list")
+			el.Add(err)
+			return []byte{}, el
 		}
 
 		podLists, errList := getPodListByNode(clientset, nodes)
@@ -155,7 +165,9 @@ func (s *ClusterSnapshot) Fetch() ([]byte, error) {
 
 		statusPods, err := getStatusPods(podLists, podsEvents)
 		if err != nil {
-			return []byte{}, fmt.Errorf("error when getting the node list, details %s ", err.Error())
+			el.AddErrorf("error when getting the pod statuses")
+			el.Add(err)
+			return []byte{}, el
 		}
 
 		//Build the full status response
@@ -167,7 +179,9 @@ func (s *ClusterSnapshot) Fetch() ([]byte, error) {
 	}
 	statuses, err := json.Marshal(s.clusterStatuses)
 	if err != nil {
-		return []byte{}, fmt.Errorf("error when marshalling %#v, details %s ", s.clusterStatuses, err.Error())
+		el.AddErrorf("error when marshalling %#v", s.clusterStatuses)
+		el.Add(err)
+		return []byte{}, el
 	}
 
 	return statuses, nil
