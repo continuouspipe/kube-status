@@ -28,7 +28,7 @@ type keepAlive struct {
 	s             service
 	Ctx           context.Context  // The context to use when extending deadlines.
 	Sub           string           // The full name of the subscription.
-	ExtensionTick <-chan time.Time // ExtenstionTick supplies the frequency with which to make extension requests.
+	ExtensionTick <-chan time.Time // ExtensionTick supplies the frequency with which to make extension requests.
 	Deadline      time.Duration    // How long to extend messages for each time they are extended. Should be greater than ExtensionTick frequency.
 	MaxExtension  time.Duration    // How long to keep extending each message's ack deadline before automatically removing it.
 
@@ -107,9 +107,12 @@ func (ka *keepAlive) Stop() {
 func (ka *keepAlive) getAckIDs() (live, expired []string) {
 	ka.mu.Lock()
 	defer ka.mu.Unlock()
+	return getKeepAliveAckIDs(ka.items)
+}
 
+func getKeepAliveAckIDs(items map[string]time.Time) (live, expired []string) {
 	now := time.Now()
-	for id, expiry := range ka.items {
+	for id, expiry := range items {
 		if expiry.Before(now) {
 			expired = append(expired, id)
 		} else {

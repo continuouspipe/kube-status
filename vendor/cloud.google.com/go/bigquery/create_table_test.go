@@ -43,15 +43,16 @@ func TestCreateTableOptions(t *testing.T) {
 	table := ds.Table("t")
 	exp := time.Now()
 	q := "query"
-	if err := table.Create(context.Background(), TableExpiration(exp), ViewQuery(q)); err != nil {
+	if err := table.Create(context.Background(), TableExpiration(exp), ViewQuery(q), UseStandardSQL()); err != nil {
 		t.Fatalf("err calling Table.Create: %v", err)
 	}
 	want := createTableConf{
-		projectID:  "p",
-		datasetID:  "d",
-		tableID:    "t",
-		expiration: exp,
-		viewQuery:  q,
+		projectID:      "p",
+		datasetID:      "d",
+		tableID:        "t",
+		expiration:     exp,
+		viewQuery:      q,
+		useStandardSQL: true,
 	}
 	if !reflect.DeepEqual(*s.conf, want) {
 		t.Errorf("createTableConf: got:\n%v\nwant:\n%v", *s.conf, want)
@@ -75,5 +76,28 @@ func TestCreateTableOptions(t *testing.T) {
 	}
 	if !reflect.DeepEqual(*s.conf, want) {
 		t.Errorf("createTableConf: got:\n%v\nwant:\n%v", *s.conf, want)
+	}
+
+	partitionCases := []struct {
+		timePartitioning   TimePartitioning
+		expectedExpiration time.Duration
+	}{
+		{TimePartitioning{}, time.Duration(0)},
+		{TimePartitioning{time.Second}, time.Second},
+	}
+
+	for _, c := range partitionCases {
+		if err := table.Create(context.Background(), c.timePartitioning); err != nil {
+			t.Fatalf("err calling Table.Create: %v", err)
+		}
+		want = createTableConf{
+			projectID:        "p",
+			datasetID:        "d",
+			tableID:          "t",
+			timePartitioning: &TimePartitioning{c.expectedExpiration},
+		}
+		if !reflect.DeepEqual(*s.conf, want) {
+			t.Errorf("createTableConf: got:\n%v\nwant:\n%v", *s.conf, want)
+		}
 	}
 }
