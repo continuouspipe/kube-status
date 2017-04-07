@@ -38,8 +38,9 @@ func main() {
 		os.Exit(1)
 	}
 
+	clusterList := clustersprovider.NewCPClusterList()
 	snapshotHandler := datasnapshots.NewDataSnapshotHandler(
-		clustersprovider.NewCPClusterList(),
+		clusterList,
 		datasnapshots.NewClusterSnapshot(),
 	)
 	go snapshotHandler.Handle()
@@ -48,6 +49,7 @@ func main() {
 	r.HandleFunc("/", rootHandle)
 	r.HandleFunc(api.ClusterFullStatusURLPath, api.NewClusterFullStatusH().Handle).Methods(http.MethodPost)
 	r.HandleFunc(api.ClusterHistoryURLPath, api.NewClusterHistoryH().Handle).Methods(http.MethodPost)
+	r.HandleFunc(api.ClusterListURLPath, api.NewClusterListHandler(clusterList).Handle).Methods(http.MethodGet)
 	http.ListenAndServe(listenURL.Host, r)
 	glog.Flush()
 }
