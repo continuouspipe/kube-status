@@ -1,12 +1,11 @@
-hash: 78a218e196531d49b6f6e4503a3a22b89766953b2db39bede3088250c98a2e14
-updated: 2017-04-07T14:09:34.397916944+01:00
+hash: 5a0379ea680807d58e9aca4fb692056ffdffa37d64848a3b604f83fb356fb92a
+updated: 2017-04-07T16:49:07.469231561+01:00
 imports:
 - name: cloud.google.com/go
-  version: 2e6a95edb1071d750f6d7db777bf66cd2997af6c
+  version: 3b1ae45394a234c385be014e9a488f2bb6eef821
   subpackages:
   - compute/metadata
   - internal
-  - internal/optional
   - storage
 - name: github.com/blang/semver
   version: 31b736133b98f26d5e078ec9eb591666edfd091f
@@ -87,8 +86,6 @@ imports:
   - proto
 - name: github.com/google/gofuzz
   version: bbcb9da2d746f8bdbd6a936686a0a6067ada0ec5
-- name: github.com/googleapis/gax-go
-  version: 9af46dd5a1713e8b5cd71106287eba3cefdde50b
 - name: github.com/gorilla/context
   version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
 - name: github.com/gorilla/mux

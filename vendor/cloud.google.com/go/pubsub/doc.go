@@ -28,7 +28,7 @@ Publishing
 Google Cloud Pub/Sub messages are published to topics. Topics may be created
 using the pubsub package like so:
 
- topic, err := pubsubClient.CreateTopic(context.Background(), "topic-name")
+ topic, err := pubsubClient.NewTopic(context.Background(), "topic-name")
 
 Messages may then be published to a topic:
 
@@ -44,7 +44,7 @@ that is published to the topic will be delivered to all of its subscriptions.
 
 Subsciptions may be created like so:
 
- sub, err := pubsubClient.CreateSubscription(context.Background(), "sub-name", topic, 0, nil)
+ sub, err := pubsubClient.NewSubscription(context.Background(), "sub-name", topic, 0, nil)
 
 Messages are then consumed from a subscription via an iterator:
 
@@ -58,7 +58,7 @@ Messages are then consumed from a subscription via an iterator:
  // Consume N messages
  for i := 0; i < N; i++ {
  	msg, err := it.Next()
- 	if err == iterator.Done {
+ 	if err == pubsub.Done {
  		break
  	}
  	if err != nil {
@@ -111,10 +111,5 @@ process messages, and the redelivery delay if messages fail to be acknowledged
 increases the available time for client code to process messages.  However, if
 the client code neglects to call Message.Done, a large MaxExtension will
 increase the delay before the message is redelivered.
-
-Authentication
-
-See examples of authorization and authentication at
-https://godoc.org/cloud.google.com/go#pkg-examples.
 */
 package pubsub // import "cloud.google.com/go/pubsub"
