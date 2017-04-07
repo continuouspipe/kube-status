@@ -169,6 +169,10 @@ type Bucket struct {
 	// when no ACL is provided.
 	DefaultObjectAcl []*ObjectAccessControl `json:"defaultObjectAcl,omitempty"`
 
+	// Encryption: Encryption configuration used by default for newly
+	// inserted objects, when no encryption config is specified.
+	Encryption *BucketEncryption `json:"encryption,omitempty"`
+
 	// Etag: HTTP 1.1 Entity tag for the bucket.
 	Etag string `json:"etag,omitempty"`
 
@@ -210,13 +214,10 @@ type Bucket struct {
 	// SelfLink: The URI of this bucket.
 	SelfLink string `json:"selfLink,omitempty"`
 
-	// StorageClass: The bucket's default storage class, used whenever no
-	// storageClass is specified for a newly-created object. This defines
-	// how objects in the bucket are stored and determines the SLA and the
-	// cost of storage. Values include MULTI_REGIONAL, REGIONAL, STANDARD,
-	// NEARLINE, COLDLINE, and DURABLE_REDUCED_AVAILABILITY. If this value
-	// is not specified when the bucket is created, it will default to
-	// STANDARD. For more information, see storage classes.
+	// StorageClass: The bucket's storage class. This defines how objects in
+	// the bucket are stored and determines the SLA and the cost of storage.
+	// Values include STANDARD, NEARLINE and DURABLE_REDUCED_AVAILABILITY.
+	// Defaults to STANDARD. For more information, see storage classes.
 	StorageClass string `json:"storageClass,omitempty"`
 
 	// TimeCreated: The creation time of the bucket in RFC 3339 format.
@@ -244,20 +245,12 @@ type Bucket struct {
 	// server regardless of whether the field is empty or not. This may be
 	// used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
-
-	// NullFields is a list of field names (e.g. "Acl") to include in API
-	// requests with the JSON null value. By default, fields with empty
-	// values are omitted from API requests. However, any field with an
-	// empty value appearing in NullFields will be sent to the server as
-	// null. It is an error if a field in this list has a non-empty value.
-	// This may be used to include null fields in Patch requests.
-	NullFields []string `json:"-"`
 }
 
 func (s *Bucket) MarshalJSON() ([]byte, error) {
 	type noMethod Bucket
 	raw := noMethod(*s)
-	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
 }
 
 type BucketCors struct {
@@ -287,20 +280,32 @@ type BucketCors struct {
 	// server regardless of whether the field is empty or not. This may be
 	// used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
-
-	// NullFields is a list of field names (e.g. "MaxAgeSeconds") to include
-	// in API requests with the JSON null value. By default, fields with
-	// empty values are omitted from API requests. However, any field with
-	// an empty value appearing in NullFields will be sent to the server as
-	// null. It is an error if a field in this list has a non-empty value.
-	// This may be used to include null fields in Patch requests.
-	NullFields []string `json:"-"`
 }
 
 func (s *BucketCors) MarshalJSON() ([]byte, error) {
 	type noMethod BucketCors
 	raw := noMethod(*s)
-	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
+}
+
+// BucketEncryption: Encryption configuration used by default for newly
+// inserted objects, when no encryption config is specified.
+type BucketEncryption struct {
+	DefaultKmsKeyName string `json:"default_kms_key_name,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "DefaultKmsKeyName")
+	// to unconditionally include in API requests. By default, fields with
+	// empty values are omitted from API requests. However, any non-pointer,
+	// non-interface field appearing in ForceSendFields will be sent to the
+	// server regardless of whether the field is empty or not. This may be
+	// used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+}
+
+func (s *BucketEncryption) MarshalJSON() ([]byte, error) {
+	type noMethod BucketEncryption
+	raw := noMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
 }
 
 // BucketLifecycle: The bucket's lifecycle configuration. See lifecycle
@@ -317,20 +322,12 @@ type BucketLifecycle struct {
 	// server regardless of whether the field is empty or not. This may be
 	// used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
-
-	// NullFields is a list of field names (e.g. "Rule") to include in API
-	// requests with the JSON null value. By default, fields with empty
-	// values are omitted from API requests. However, any field with an
-	// empty value appearing in NullFields will be sent to the server as
-	// null. It is an error if a field in this list has a non-empty value.
-	// This may be used to include null fields in Patch requests.
-	NullFields []string `json:"-"`
 }
 
 func (s *BucketLifecycle) MarshalJSON() ([]byte, error) {
 	type noMethod BucketLifecycle
 	raw := noMethod(*s)
-	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
 }
 
 type BucketLifecycleRule struct {
@@ -347,53 +344,32 @@ type BucketLifecycleRule struct {
 	// server regardless of whether the field is empty or not. This may be
 	// used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
-
-	// NullFields is a list of field names (e.g. "Action") to include in API
-	// requests with the JSON null value. By default, fields with empty
-	// values are omitted from API requests. However, any field with an
-	// empty value appearing in NullFields will be sent to the server as
-	// null. It is an error if a field in this list has a non-empty value.
-	// This may be used to include null fields in Patch requests.
-	NullFields []string `json:"-"`
 }
 
 func (s *BucketLifecycleRule) MarshalJSON() ([]byte, error) {
 	type noMethod BucketLifecycleRule
 	raw := noMethod(*s)
-	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
 }
 
 // BucketLifecycleRuleAction: The action to take.
 type BucketLifecycleRuleAction struct {
-	// StorageClass: Target storage class. Required iff the type of the
-	// action is SetStorageClass.
-	StorageClass string `json:"storageClass,omitempty"`
-
-	// Type: Type of the action. Currently, only Delete and SetStorageClass
-	// are supported.
+	// Type: Type of the action. Currently, only Delete is supported.
 	Type string `json:"type,omitempty"`
 
-	// ForceSendFields is a list of field names (e.g. "StorageClass") to
+	// ForceSendFields is a list of field names (e.g. "Type") to
 	// unconditionally include in API requests. By default, fields with
 	// empty values are omitted from API requests. However, any non-pointer,
 	// non-interface field appearing in ForceSendFields will be sent to the
 	// server regardless of whether the field is empty or not. This may be
 	// used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
-
-	// NullFields is a list of field names (e.g. "StorageClass") to include
-	// in API requests with the JSON null value. By default, fields with
-	// empty values are omitted from API requests. However, any field with
-	// an empty value appearing in NullFields will be sent to the server as
-	// null. It is an error if a field in this list has a non-empty value.
-	// This may be used to include null fields in Patch requests.
-	NullFields []string `json:"-"`
 }
 
 func (s *BucketLifecycleRuleAction) MarshalJSON() ([]byte, error) {
 	type noMethod BucketLifecycleRuleAction
 	raw := noMethod(*s)
-	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
 }
 
 // BucketLifecycleRuleCondition: The condition(s) under which the action
@@ -413,12 +389,6 @@ type BucketLifecycleRuleCondition struct {
 	// matches archived objects.
 	IsLive bool `json:"isLive,omitempty"`
 
-	// MatchesStorageClass: Objects having any of the storage classes
-	// specified by this condition will be matched. Values include
-	// MULTI_REGIONAL, REGIONAL, NEARLINE, COLDLINE, STANDARD, and
-	// DURABLE_REDUCED_AVAILABILITY.
-	MatchesStorageClass []string `json:"matchesStorageClass,omitempty"`
-
 	// NumNewerVersions: Relevant only for versioned objects. If the value
 	// is N, this condition is satisfied when there are at least N versions
 	// (including the live version) newer than this version of the object.
@@ -431,20 +401,12 @@ type BucketLifecycleRuleCondition struct {
 	// server regardless of whether the field is empty or not. This may be
 	// used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
-
-	// NullFields is a list of field names (e.g. "Age") to include in API
-	// requests with the JSON null value. By default, fields with empty
-	// values are omitted from API requests. However, any field with an
-	// empty value appearing in NullFields will be sent to the server as
-	// null. It is an error if a field in this list has a non-empty value.
-	// This may be used to include null fields in Patch requests.
-	NullFields []string `json:"-"`
 }
 
 func (s *BucketLifecycleRuleCondition) MarshalJSON() ([]byte, error) {
 	type noMethod BucketLifecycleRuleCondition
 	raw := noMethod(*s)
-	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
 }
 
 // BucketLogging: The bucket's logging configuration, which defines the
@@ -465,20 +427,12 @@ type BucketLogging struct {
 	// server regardless of whether the field is empty or not. This may be
 	// used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
-
-	// NullFields is a list of field names (e.g. "LogBucket") to include in
-	// API requests with the JSON null value. By default, fields with empty
-	// values are omitted from API requests. However, any field with an
-	// empty value appearing in NullFields will be sent to the server as
-	// null. It is an error if a field in this list has a non-empty value.
-	// This may be used to include null fields in Patch requests.
-	NullFields []string `json:"-"`
 }
 
 func (s *BucketLogging) MarshalJSON() ([]byte, error) {
 	type noMethod BucketLogging
 	raw := noMethod(*s)
-	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
 }
 
 // BucketOwner: The owner of the bucket. This is always the project
@@ -497,20 +451,12 @@ type BucketOwner struct {
 	// server regardless of whether the field is empty or not. This may be
 	// used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
-
-	// NullFields is a list of field names (e.g. "Entity") to include in API
-	// requests with the JSON null value. By default, fields with empty
-	// values are omitted from API requests. However, any field with an
-	// empty value appearing in NullFields will be sent to the server as
-	// null. It is an error if a field in this list has a non-empty value.
-	// This may be used to include null fields in Patch requests.
-	NullFields []string `json:"-"`
 }
 
 func (s *BucketOwner) MarshalJSON() ([]byte, error) {
 	type noMethod BucketOwner
 	raw := noMethod(*s)
-	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
 }
 
 // BucketVersioning: The bucket's versioning configuration.
@@ -526,20 +472,12 @@ type BucketVersioning struct {
 	// server regardless of whether the field is empty or not. This may be
 	// used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
-
-	// NullFields is a list of field names (e.g. "Enabled") to include in
-	// API requests with the JSON null value. By default, fields with empty
-	// values are omitted from API requests. However, any field with an
-	// empty value appearing in NullFields will be sent to the server as
-	// null. It is an error if a field in this list has a non-empty value.
-	// This may be used to include null fields in Patch requests.
-	NullFields []string `json:"-"`
 }
 
 func (s *BucketVersioning) MarshalJSON() ([]byte, error) {
 	type noMethod BucketVersioning
 	raw := noMethod(*s)
-	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
 }
 
 // BucketWebsite: The bucket's website configuration, controlling how
@@ -565,21 +503,12 @@ type BucketWebsite struct {
 	// server regardless of whether the field is empty or not. This may be
 	// used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
-
-	// NullFields is a list of field names (e.g. "MainPageSuffix") to
-	// include in API requests with the JSON null value. By default, fields
-	// with empty values are omitted from API requests. However, any field
-	// with an empty value appearing in NullFields will be sent to the
-	// server as null. It is an error if a field in this list has a
-	// non-empty value. This may be used to include null fields in Patch
-	// requests.
-	NullFields []string `json:"-"`
 }
 
 func (s *BucketWebsite) MarshalJSON() ([]byte, error) {
 	type noMethod BucketWebsite
 	raw := noMethod(*s)
-	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
 }
 
 // BucketAccessControl: An access-control entry.
@@ -643,20 +572,12 @@ type BucketAccessControl struct {
 	// server regardless of whether the field is empty or not. This may be
 	// used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
-
-	// NullFields is a list of field names (e.g. "Bucket") to include in API
-	// requests with the JSON null value. By default, fields with empty
-	// values are omitted from API requests. However, any field with an
-	// empty value appearing in NullFields will be sent to the server as
-	// null. It is an error if a field in this list has a non-empty value.
-	// This may be used to include null fields in Patch requests.
-	NullFields []string `json:"-"`
 }
 
 func (s *BucketAccessControl) MarshalJSON() ([]byte, error) {
 	type noMethod BucketAccessControl
 	raw := noMethod(*s)
-	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
 }
 
 // BucketAccessControlProjectTeam: The project team associated with the
@@ -675,20 +596,12 @@ type BucketAccessControlProjectTeam struct {
 	// server regardless of whether the field is empty or not. This may be
 	// used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
-
-	// NullFields is a list of field names (e.g. "ProjectNumber") to include
-	// in API requests with the JSON null value. By default, fields with
-	// empty values are omitted from API requests. However, any field with
-	// an empty value appearing in NullFields will be sent to the server as
-	// null. It is an error if a field in this list has a non-empty value.
-	// This may be used to include null fields in Patch requests.
-	NullFields []string `json:"-"`
 }
 
 func (s *BucketAccessControlProjectTeam) MarshalJSON() ([]byte, error) {
 	type noMethod BucketAccessControlProjectTeam
 	raw := noMethod(*s)
-	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
 }
 
 // BucketAccessControls: An access-control list.
@@ -711,20 +624,12 @@ type BucketAccessControls struct {
 	// server regardless of whether the field is empty or not. This may be
 	// used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
-
-	// NullFields is a list of field names (e.g. "Items") to include in API
-	// requests with the JSON null value. By default, fields with empty
-	// values are omitted from API requests. However, any field with an
-	// empty value appearing in NullFields will be sent to the server as
-	// null. It is an error if a field in this list has a non-empty value.
-	// This may be used to include null fields in Patch requests.
-	NullFields []string `json:"-"`
 }
 
 func (s *BucketAccessControls) MarshalJSON() ([]byte, error) {
 	type noMethod BucketAccessControls
 	raw := noMethod(*s)
-	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
 }
 
 // Buckets: A list of buckets.
@@ -752,20 +657,12 @@ type Buckets struct {
 	// server regardless of whether the field is empty or not. This may be
 	// used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
-
-	// NullFields is a list of field names (e.g. "Items") to include in API
-	// requests with the JSON null value. By default, fields with empty
-	// values are omitted from API requests. However, any field with an
-	// empty value appearing in NullFields will be sent to the server as
-	// null. It is an error if a field in this list has a non-empty value.
-	// This may be used to include null fields in Patch requests.
-	NullFields []string `json:"-"`
 }
 
 func (s *Buckets) MarshalJSON() ([]byte, error) {
 	type noMethod Buckets
 	raw := noMethod(*s)
-	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
 }
 
 // Channel: An notification channel used to watch for resource changes.
@@ -818,20 +715,12 @@ type Channel struct {
 	// server regardless of whether the field is empty or not. This may be
 	// used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
-
-	// NullFields is a list of field names (e.g. "Address") to include in
-	// API requests with the JSON null value. By default, fields with empty
-	// values are omitted from API requests. However, any field with an
-	// empty value appearing in NullFields will be sent to the server as
-	// null. It is an error if a field in this list has a non-empty value.
-	// This may be used to include null fields in Patch requests.
-	NullFields []string `json:"-"`
 }
 
 func (s *Channel) MarshalJSON() ([]byte, error) {
 	type noMethod Channel
 	raw := noMethod(*s)
-	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
 }
 
 // ComposeRequest: A Compose request.
@@ -853,20 +742,12 @@ type ComposeRequest struct {
 	// server regardless of whether the field is empty or not. This may be
 	// used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
-
-	// NullFields is a list of field names (e.g. "Destination") to include
-	// in API requests with the JSON null value. By default, fields with
-	// empty values are omitted from API requests. However, any field with
-	// an empty value appearing in NullFields will be sent to the server as
-	// null. It is an error if a field in this list has a non-empty value.
-	// This may be used to include null fields in Patch requests.
-	NullFields []string `json:"-"`
 }
 
 func (s *ComposeRequest) MarshalJSON() ([]byte, error) {
 	type noMethod ComposeRequest
 	raw := noMethod(*s)
-	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
 }
 
 type ComposeRequestSourceObjects struct {
@@ -888,20 +769,12 @@ type ComposeRequestSourceObjects struct {
 	// server regardless of whether the field is empty or not. This may be
 	// used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
-
-	// NullFields is a list of field names (e.g. "Generation") to include in
-	// API requests with the JSON null value. By default, fields with empty
-	// values are omitted from API requests. However, any field with an
-	// empty value appearing in NullFields will be sent to the server as
-	// null. It is an error if a field in this list has a non-empty value.
-	// This may be used to include null fields in Patch requests.
-	NullFields []string `json:"-"`
 }
 
 func (s *ComposeRequestSourceObjects) MarshalJSON() ([]byte, error) {
 	type noMethod ComposeRequestSourceObjects
 	raw := noMethod(*s)
-	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
 }
 
 // ComposeRequestSourceObjectsObjectPreconditions: Conditions that must
@@ -920,21 +793,12 @@ type ComposeRequestSourceObjectsObjectPreconditions struct {
 	// server regardless of whether the field is empty or not. This may be
 	// used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
-
-	// NullFields is a list of field names (e.g. "IfGenerationMatch") to
-	// include in API requests with the JSON null value. By default, fields
-	// with empty values are omitted from API requests. However, any field
-	// with an empty value appearing in NullFields will be sent to the
-	// server as null. It is an error if a field in this list has a
-	// non-empty value. This may be used to include null fields in Patch
-	// requests.
-	NullFields []string `json:"-"`
 }
 
 func (s *ComposeRequestSourceObjectsObjectPreconditions) MarshalJSON() ([]byte, error) {
 	type noMethod ComposeRequestSourceObjectsObjectPreconditions
 	raw := noMethod(*s)
-	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
 }
 
 // Object: An object.
@@ -992,6 +856,10 @@ type Object struct {
 	// storage#object.
 	Kind string `json:"kind,omitempty"`
 
+	// KmsKeyName: Cloud KMS Key used to encrypt this object, if the object
+	// is encrypted by such a key.
+	KmsKeyName string `json:"kmsKeyName,omitempty"`
+
 	// Md5Hash: MD5 hash of the data; encoded using base64. For more
 	// information about using the MD5 hash, see Hashes and ETags: Best
 	// Practices.
@@ -1034,11 +902,6 @@ type Object struct {
 	// deleted.
 	TimeDeleted string `json:"timeDeleted,omitempty"`
 
-	// TimeStorageClassUpdated: The time at which the object's storage class
-	// was last changed. When the object is initially created, it will be
-	// set to timeCreated.
-	TimeStorageClassUpdated string `json:"timeStorageClassUpdated,omitempty"`
-
 	// Updated: The modification time of the object metadata in RFC 3339
 	// format.
 	Updated string `json:"updated,omitempty"`
@@ -1054,20 +917,12 @@ type Object struct {
 	// server regardless of whether the field is empty or not. This may be
 	// used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
-
-	// NullFields is a list of field names (e.g. "Acl") to include in API
-	// requests with the JSON null value. By default, fields with empty
-	// values are omitted from API requests. However, any field with an
-	// empty value appearing in NullFields will be sent to the server as
-	// null. It is an error if a field in this list has a non-empty value.
-	// This may be used to include null fields in Patch requests.
-	NullFields []string `json:"-"`
 }
 
 func (s *Object) MarshalJSON() ([]byte, error) {
 	type noMethod Object
 	raw := noMethod(*s)
-	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
 }
 
 // ObjectCustomerEncryption: Metadata of customer-supplied encryption
@@ -1086,21 +941,12 @@ type ObjectCustomerEncryption struct {
 	// server regardless of whether the field is empty or not. This may be
 	// used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
-
-	// NullFields is a list of field names (e.g. "EncryptionAlgorithm") to
-	// include in API requests with the JSON null value. By default, fields
-	// with empty values are omitted from API requests. However, any field
-	// with an empty value appearing in NullFields will be sent to the
-	// server as null. It is an error if a field in this list has a
-	// non-empty value. This may be used to include null fields in Patch
-	// requests.
-	NullFields []string `json:"-"`
 }
 
 func (s *ObjectCustomerEncryption) MarshalJSON() ([]byte, error) {
 	type noMethod ObjectCustomerEncryption
 	raw := noMethod(*s)
-	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
 }
 
 // ObjectOwner: The owner of the object. This will always be the
@@ -1119,20 +965,12 @@ type ObjectOwner struct {
 	// server regardless of whether the field is empty or not. This may be
 	// used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
-
-	// NullFields is a list of field names (e.g. "Entity") to include in API
-	// requests with the JSON null value. By default, fields with empty
-	// values are omitted from API requests. However, any field with an
-	// empty value appearing in NullFields will be sent to the server as
-	// null. It is an error if a field in this list has a non-empty value.
-	// This may be used to include null fields in Patch requests.
-	NullFields []string `json:"-"`
 }
 
 func (s *ObjectOwner) MarshalJSON() ([]byte, error) {
 	type noMethod ObjectOwner
 	raw := noMethod(*s)
-	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
 }
 
 // ObjectAccessControl: An access-control entry.
@@ -1169,8 +1007,7 @@ type ObjectAccessControl struct {
 	// Etag: HTTP 1.1 Entity tag for the access-control entry.
 	Etag string `json:"etag,omitempty"`
 
-	// Generation: The content generation of the object, if applied to an
-	// object.
+	// Generation: The content generation of the object.
 	Generation int64 `json:"generation,omitempty,string"`
 
 	// Id: The ID of the access-control entry.
@@ -1180,7 +1017,7 @@ type ObjectAccessControl struct {
 	// this is always storage#objectAccessControl.
 	Kind string `json:"kind,omitempty"`
 
-	// Object: The name of the object, if applied to an object.
+	// Object: The name of the object.
 	Object string `json:"object,omitempty"`
 
 	// ProjectTeam: The project team associated with the entity, if any.
@@ -1203,20 +1040,12 @@ type ObjectAccessControl struct {
 	// server regardless of whether the field is empty or not. This may be
 	// used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
-
-	// NullFields is a list of field names (e.g. "Bucket") to include in API
-	// requests with the JSON null value. By default, fields with empty
-	// values are omitted from API requests. However, any field with an
-	// empty value appearing in NullFields will be sent to the server as
-	// null. It is an error if a field in this list has a non-empty value.
-	// This may be used to include null fields in Patch requests.
-	NullFields []string `json:"-"`
 }
 
 func (s *ObjectAccessControl) MarshalJSON() ([]byte, error) {
 	type noMethod ObjectAccessControl
 	raw := noMethod(*s)
-	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
 }
 
 // ObjectAccessControlProjectTeam: The project team associated with the
@@ -1235,26 +1064,18 @@ type ObjectAccessControlProjectTeam struct {
 	// server regardless of whether the field is empty or not. This may be
 	// used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
-
-	// NullFields is a list of field names (e.g. "ProjectNumber") to include
-	// in API requests with the JSON null value. By default, fields with
-	// empty values are omitted from API requests. However, any field with
-	// an empty value appearing in NullFields will be sent to the server as
-	// null. It is an error if a field in this list has a non-empty value.
-	// This may be used to include null fields in Patch requests.
-	NullFields []string `json:"-"`
 }
 
 func (s *ObjectAccessControlProjectTeam) MarshalJSON() ([]byte, error) {
 	type noMethod ObjectAccessControlProjectTeam
 	raw := noMethod(*s)
-	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
 }
 
 // ObjectAccessControls: An access-control list.
 type ObjectAccessControls struct {
 	// Items: The list of items.
-	Items []*ObjectAccessControl `json:"items,omitempty"`
+	Items []interface{} `json:"items,omitempty"`
 
 	// Kind: The kind of item this is. For lists of object access control
 	// entries, this is always storage#objectAccessControls.
@@ -1271,20 +1092,12 @@ type ObjectAccessControls struct {
 	// server regardless of whether the field is empty or not. This may be
 	// used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
-
-	// NullFields is a list of field names (e.g. "Items") to include in API
-	// requests with the JSON null value. By default, fields with empty
-	// values are omitted from API requests. However, any field with an
-	// empty value appearing in NullFields will be sent to the server as
-	// null. It is an error if a field in this list has a non-empty value.
-	// This may be used to include null fields in Patch requests.
-	NullFields []string `json:"-"`
 }
 
 func (s *ObjectAccessControls) MarshalJSON() ([]byte, error) {
 	type noMethod ObjectAccessControls
 	raw := noMethod(*s)
-	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
 }
 
 // Objects: A list of objects.
@@ -1316,20 +1129,12 @@ type Objects struct {
 	// server regardless of whether the field is empty or not. This may be
 	// used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
-
-	// NullFields is a list of field names (e.g. "Items") to include in API
-	// requests with the JSON null value. By default, fields with empty
-	// values are omitted from API requests. However, any field with an
-	// empty value appearing in NullFields will be sent to the server as
-	// null. It is an error if a field in this list has a non-empty value.
-	// This may be used to include null fields in Patch requests.
-	NullFields []string `json:"-"`
 }
 
 func (s *Objects) MarshalJSON() ([]byte, error) {
 	type noMethod Objects
 	raw := noMethod(*s)
-	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
 }
 
 // RewriteResponse: A rewrite response.
@@ -1371,20 +1176,12 @@ type RewriteResponse struct {
 	// server regardless of whether the field is empty or not. This may be
 	// used to include empty fields in Patch requests.
 	ForceSendFields []string `json:"-"`
-
-	// NullFields is a list of field names (e.g. "Done") to include in API
-	// requests with the JSON null value. By default, fields with empty
-	// values are omitted from API requests. However, any field with an
-	// empty value appearing in NullFields will be sent to the server as
-	// null. It is an error if a field in this list has a non-empty value.
-	// This may be used to include null fields in Patch requests.
-	NullFields []string `json:"-"`
 }
 
 func (s *RewriteResponse) MarshalJSON() ([]byte, error) {
 	type noMethod RewriteResponse
 	raw := noMethod(*s)
-	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
 }
 
 // method id "storage.bucketAccessControls.delete":
@@ -1395,7 +1192,6 @@ type BucketAccessControlsDeleteCall struct {
 	entity     string
 	urlParams_ gensupport.URLParams
 	ctx_       context.Context
-	header_    http.Header
 }
 
 // Delete: Permanently deletes the ACL entry for the specified entity on
@@ -1423,20 +1219,8 @@ func (c *BucketAccessControlsDeleteCall) Context(ctx context.Context) *BucketAcc
 	return c
 }
 
-// Header returns an http.Header that can be modified by the caller to
-// add HTTP headers to the request.
-func (c *BucketAccessControlsDeleteCall) Header() http.Header {
-	if c.header_ == nil {
-		c.header_ = make(http.Header)
-	}
-	return c.header_
-}
-
 func (c *BucketAccessControlsDeleteCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	for k, v := range c.header_ {
-		reqHeaders[k] = v
-	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
 	var body io.Reader = nil
 	c.urlParams_.Set("alt", alt)
@@ -1503,7 +1287,6 @@ type BucketAccessControlsGetCall struct {
 	urlParams_   gensupport.URLParams
 	ifNoneMatch_ string
 	ctx_         context.Context
-	header_      http.Header
 }
 
 // Get: Returns the ACL entry for the specified entity on the specified
@@ -1541,20 +1324,8 @@ func (c *BucketAccessControlsGetCall) Context(ctx context.Context) *BucketAccess
 	return c
 }
 
-// Header returns an http.Header that can be modified by the caller to
-// add HTTP headers to the request.
-func (c *BucketAccessControlsGetCall) Header() http.Header {
-	if c.header_ == nil {
-		c.header_ = make(http.Header)
-	}
-	return c.header_
-}
-
 func (c *BucketAccessControlsGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	for k, v := range c.header_ {
-		reqHeaders[k] = v
-	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
 	if c.ifNoneMatch_ != "" {
 		reqHeaders.Set("If-None-Match", c.ifNoneMatch_)
@@ -1651,7 +1422,6 @@ type BucketAccessControlsInsertCall struct {
 	bucketaccesscontrol *BucketAccessControl
 	urlParams_          gensupport.URLParams
 	ctx_                context.Context
-	header_             http.Header
 }
 
 // Insert: Creates a new ACL entry on the specified bucket.
@@ -1678,20 +1448,8 @@ func (c *BucketAccessControlsInsertCall) Context(ctx context.Context) *BucketAcc
 	return c
 }
 
-// Header returns an http.Header that can be modified by the caller to
-// add HTTP headers to the request.
-func (c *BucketAccessControlsInsertCall) Header() http.Header {
-	if c.header_ == nil {
-		c.header_ = make(http.Header)
-	}
-	return c.header_
-}
-
 func (c *BucketAccessControlsInsertCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	for k, v := range c.header_ {
-		reqHeaders[k] = v
-	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
 	var body io.Reader = nil
 	body, err := googleapi.WithoutDataWrapper.JSONReader(c.bucketaccesscontrol)
@@ -1785,7 +1543,6 @@ type BucketAccessControlsListCall struct {
 	urlParams_   gensupport.URLParams
 	ifNoneMatch_ string
 	ctx_         context.Context
-	header_      http.Header
 }
 
 // List: Retrieves ACL entries on the specified bucket.
@@ -1821,20 +1578,8 @@ func (c *BucketAccessControlsListCall) Context(ctx context.Context) *BucketAcces
 	return c
 }
 
-// Header returns an http.Header that can be modified by the caller to
-// add HTTP headers to the request.
-func (c *BucketAccessControlsListCall) Header() http.Header {
-	if c.header_ == nil {
-		c.header_ = make(http.Header)
-	}
-	return c.header_
-}
-
 func (c *BucketAccessControlsListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	for k, v := range c.header_ {
-		reqHeaders[k] = v
-	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
 	if c.ifNoneMatch_ != "" {
 		reqHeaders.Set("If-None-Match", c.ifNoneMatch_)
@@ -1924,7 +1669,6 @@ type BucketAccessControlsPatchCall struct {
 	bucketaccesscontrol *BucketAccessControl
 	urlParams_          gensupport.URLParams
 	ctx_                context.Context
-	header_             http.Header
 }
 
 // Patch: Updates an ACL entry on the specified bucket. This method
@@ -1953,20 +1697,8 @@ func (c *BucketAccessControlsPatchCall) Context(ctx context.Context) *BucketAcce
 	return c
 }
 
-// Header returns an http.Header that can be modified by the caller to
-// add HTTP headers to the request.
-func (c *BucketAccessControlsPatchCall) Header() http.Header {
-	if c.header_ == nil {
-		c.header_ = make(http.Header)
-	}
-	return c.header_
-}
-
 func (c *BucketAccessControlsPatchCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	for k, v := range c.header_ {
-		reqHeaders[k] = v
-	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
 	var body io.Reader = nil
 	body, err := googleapi.WithoutDataWrapper.JSONReader(c.bucketaccesscontrol)
@@ -2069,7 +1801,6 @@ type BucketAccessControlsUpdateCall struct {
 	bucketaccesscontrol *BucketAccessControl
 	urlParams_          gensupport.URLParams
 	ctx_                context.Context
-	header_             http.Header
 }
 
 // Update: Updates an ACL entry on the specified bucket.
@@ -2097,20 +1828,8 @@ func (c *BucketAccessControlsUpdateCall) Context(ctx context.Context) *BucketAcc
 	return c
 }
 
-// Header returns an http.Header that can be modified by the caller to
-// add HTTP headers to the request.
-func (c *BucketAccessControlsUpdateCall) Header() http.Header {
-	if c.header_ == nil {
-		c.header_ = make(http.Header)
-	}
-	return c.header_
-}
-
 func (c *BucketAccessControlsUpdateCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	for k, v := range c.header_ {
-		reqHeaders[k] = v
-	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
 	var body io.Reader = nil
 	body, err := googleapi.WithoutDataWrapper.JSONReader(c.bucketaccesscontrol)
@@ -2211,7 +1930,6 @@ type BucketsDeleteCall struct {
 	bucket     string
 	urlParams_ gensupport.URLParams
 	ctx_       context.Context
-	header_    http.Header
 }
 
 // Delete: Permanently deletes an empty bucket.
@@ -2253,20 +1971,8 @@ func (c *BucketsDeleteCall) Context(ctx context.Context) *BucketsDeleteCall {
 	return c
 }
 
-// Header returns an http.Header that can be modified by the caller to
-// add HTTP headers to the request.
-func (c *BucketsDeleteCall) Header() http.Header {
-	if c.header_ == nil {
-		c.header_ = make(http.Header)
-	}
-	return c.header_
-}
-
 func (c *BucketsDeleteCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	for k, v := range c.header_ {
-		reqHeaders[k] = v
-	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
 	var body io.Reader = nil
 	c.urlParams_.Set("alt", alt)
@@ -2337,7 +2043,6 @@ type BucketsGetCall struct {
 	urlParams_   gensupport.URLParams
 	ifNoneMatch_ string
 	ctx_         context.Context
-	header_      http.Header
 }
 
 // Get: Returns metadata for the specified bucket.
@@ -2402,20 +2107,8 @@ func (c *BucketsGetCall) Context(ctx context.Context) *BucketsGetCall {
 	return c
 }
 
-// Header returns an http.Header that can be modified by the caller to
-// add HTTP headers to the request.
-func (c *BucketsGetCall) Header() http.Header {
-	if c.header_ == nil {
-		c.header_ = make(http.Header)
-	}
-	return c.header_
-}
-
 func (c *BucketsGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	for k, v := range c.header_ {
-		reqHeaders[k] = v
-	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
 	if c.ifNoneMatch_ != "" {
 		reqHeaders.Set("If-None-Match", c.ifNoneMatch_)
@@ -2531,7 +2224,6 @@ type BucketsInsertCall struct {
 	bucket     *Bucket
 	urlParams_ gensupport.URLParams
 	ctx_       context.Context
-	header_    http.Header
 }
 
 // Insert: Creates a new bucket.
@@ -2610,20 +2302,8 @@ func (c *BucketsInsertCall) Context(ctx context.Context) *BucketsInsertCall {
 	return c
 }
 
-// Header returns an http.Header that can be modified by the caller to
-// add HTTP headers to the request.
-func (c *BucketsInsertCall) Header() http.Header {
-	if c.header_ == nil {
-		c.header_ = make(http.Header)
-	}
-	return c.header_
-}
-
 func (c *BucketsInsertCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	for k, v := range c.header_ {
-		reqHeaders[k] = v
-	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
 	var body io.Reader = nil
 	body, err := googleapi.WithoutDataWrapper.JSONReader(c.bucket)
@@ -2767,7 +2447,6 @@ type BucketsListCall struct {
 	urlParams_   gensupport.URLParams
 	ifNoneMatch_ string
 	ctx_         context.Context
-	header_      http.Header
 }
 
 // List: Retrieves a list of buckets for a given project.
@@ -2836,20 +2515,8 @@ func (c *BucketsListCall) Context(ctx context.Context) *BucketsListCall {
 	return c
 }
 
-// Header returns an http.Header that can be modified by the caller to
-// add HTTP headers to the request.
-func (c *BucketsListCall) Header() http.Header {
-	if c.header_ == nil {
-		c.header_ = make(http.Header)
-	}
-	return c.header_
-}
-
 func (c *BucketsListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	for k, v := range c.header_ {
-		reqHeaders[k] = v
-	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
 	if c.ifNoneMatch_ != "" {
 		reqHeaders.Set("If-None-Match", c.ifNoneMatch_)
@@ -2989,12 +2656,9 @@ type BucketsPatchCall struct {
 	bucket2    *Bucket
 	urlParams_ gensupport.URLParams
 	ctx_       context.Context
-	header_    http.Header
 }
 
-// Patch: Updates a bucket. Changes to the bucket will be readable
-// immediately after writing, but configuration changes may take time to
-// propagate. This method supports patch semantics.
+// Patch: Updates a bucket. This method supports patch semantics.
 func (r *BucketsService) Patch(bucket string, bucket2 *Bucket) *BucketsPatchCall {
 	c := &BucketsPatchCall{s: r.s, urlParams_: make(gensupport.URLParams)}
 	c.bucket = bucket
@@ -3086,20 +2750,8 @@ func (c *BucketsPatchCall) Context(ctx context.Context) *BucketsPatchCall {
 	return c
 }
 
-// Header returns an http.Header that can be modified by the caller to
-// add HTTP headers to the request.
-func (c *BucketsPatchCall) Header() http.Header {
-	if c.header_ == nil {
-		c.header_ = make(http.Header)
-	}
-	return c.header_
-}
-
 func (c *BucketsPatchCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	for k, v := range c.header_ {
-		reqHeaders[k] = v
-	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
 	var body io.Reader = nil
 	body, err := googleapi.WithoutDataWrapper.JSONReader(c.bucket2)
@@ -3156,7 +2808,7 @@ func (c *BucketsPatchCall) Do(opts ...googleapi.CallOption) (*Bucket, error) {
 	}
 	return ret, nil
 	// {
-	//   "description": "Updates a bucket. Changes to the bucket will be readable immediately after writing, but configuration changes may take time to propagate. This method supports patch semantics.",
+	//   "description": "Updates a bucket. This method supports patch semantics.",
 	//   "httpMethod": "PATCH",
 	//   "id": "storage.buckets.patch",
 	//   "parameterOrder": [
@@ -3258,12 +2910,9 @@ type BucketsUpdateCall struct {
 	bucket2    *Bucket
 	urlParams_ gensupport.URLParams
 	ctx_       context.Context
-	header_    http.Header
 }
 
-// Update: Updates a bucket. Changes to the bucket will be readable
-// immediately after writing, but configuration changes may take time to
-// propagate.
+// Update: Updates a bucket.
 func (r *BucketsService) Update(bucket string, bucket2 *Bucket) *BucketsUpdateCall {
 	c := &BucketsUpdateCall{s: r.s, urlParams_: make(gensupport.URLParams)}
 	c.bucket = bucket
@@ -3355,20 +3004,8 @@ func (c *BucketsUpdateCall) Context(ctx context.Context) *BucketsUpdateCall {
 	return c
 }
 
-// Header returns an http.Header that can be modified by the caller to
-// add HTTP headers to the request.
-func (c *BucketsUpdateCall) Header() http.Header {
-	if c.header_ == nil {
-		c.header_ = make(http.Header)
-	}
-	return c.header_
-}
-
 func (c *BucketsUpdateCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	for k, v := range c.header_ {
-		reqHeaders[k] = v
-	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
 	var body io.Reader = nil
 	body, err := googleapi.WithoutDataWrapper.JSONReader(c.bucket2)
@@ -3425,7 +3062,7 @@ func (c *BucketsUpdateCall) Do(opts ...googleapi.CallOption) (*Bucket, error) {
 	}
 	return ret, nil
 	// {
-	//   "description": "Updates a bucket. Changes to the bucket will be readable immediately after writing, but configuration changes may take time to propagate.",
+	//   "description": "Updates a bucket.",
 	//   "httpMethod": "PUT",
 	//   "id": "storage.buckets.update",
 	//   "parameterOrder": [
@@ -3526,7 +3163,6 @@ type ChannelsStopCall struct {
 	channel    *Channel
 	urlParams_ gensupport.URLParams
 	ctx_       context.Context
-	header_    http.Header
 }
 
 // Stop: Stop watching resources through this channel
@@ -3552,20 +3188,8 @@ func (c *ChannelsStopCall) Context(ctx context.Context) *ChannelsStopCall {
 	return c
 }
 
-// Header returns an http.Header that can be modified by the caller to
-// add HTTP headers to the request.
-func (c *ChannelsStopCall) Header() http.Header {
-	if c.header_ == nil {
-		c.header_ = make(http.Header)
-	}
-	return c.header_
-}
-
 func (c *ChannelsStopCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	for k, v := range c.header_ {
-		reqHeaders[k] = v
-	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
 	var body io.Reader = nil
 	body, err := googleapi.WithoutDataWrapper.JSONReader(c.channel)
@@ -3621,7 +3245,6 @@ type DefaultObjectAccessControlsDeleteCall struct {
 	entity     string
 	urlParams_ gensupport.URLParams
 	ctx_       context.Context
-	header_    http.Header
 }
 
 // Delete: Permanently deletes the default object ACL entry for the
@@ -3649,20 +3272,8 @@ func (c *DefaultObjectAccessControlsDeleteCall) Context(ctx context.Context) *De
 	return c
 }
 
-// Header returns an http.Header that can be modified by the caller to
-// add HTTP headers to the request.
-func (c *DefaultObjectAccessControlsDeleteCall) Header() http.Header {
-	if c.header_ == nil {
-		c.header_ = make(http.Header)
-	}
-	return c.header_
-}
-
 func (c *DefaultObjectAccessControlsDeleteCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	for k, v := range c.header_ {
-		reqHeaders[k] = v
-	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
 	var body io.Reader = nil
 	c.urlParams_.Set("alt", alt)
@@ -3729,7 +3340,6 @@ type DefaultObjectAccessControlsGetCall struct {
 	urlParams_   gensupport.URLParams
 	ifNoneMatch_ string
 	ctx_         context.Context
-	header_      http.Header
 }
 
 // Get: Returns the default object ACL entry for the specified entity on
@@ -3767,20 +3377,8 @@ func (c *DefaultObjectAccessControlsGetCall) Context(ctx context.Context) *Defau
 	return c
 }
 
-// Header returns an http.Header that can be modified by the caller to
-// add HTTP headers to the request.
-func (c *DefaultObjectAccessControlsGetCall) Header() http.Header {
-	if c.header_ == nil {
-		c.header_ = make(http.Header)
-	}
-	return c.header_
-}
-
 func (c *DefaultObjectAccessControlsGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	for k, v := range c.header_ {
-		reqHeaders[k] = v
-	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
 	if c.ifNoneMatch_ != "" {
 		reqHeaders.Set("If-None-Match", c.ifNoneMatch_)
@@ -3877,7 +3475,6 @@ type DefaultObjectAccessControlsInsertCall struct {
 	objectaccesscontrol *ObjectAccessControl
 	urlParams_          gensupport.URLParams
 	ctx_                context.Context
-	header_             http.Header
 }
 
 // Insert: Creates a new default object ACL entry on the specified
@@ -3905,20 +3502,8 @@ func (c *DefaultObjectAccessControlsInsertCall) Context(ctx context.Context) *De
 	return c
 }
 
-// Header returns an http.Header that can be modified by the caller to
-// add HTTP headers to the request.
-func (c *DefaultObjectAccessControlsInsertCall) Header() http.Header {
-	if c.header_ == nil {
-		c.header_ = make(http.Header)
-	}
-	return c.header_
-}
-
 func (c *DefaultObjectAccessControlsInsertCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	for k, v := range c.header_ {
-		reqHeaders[k] = v
-	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
 	var body io.Reader = nil
 	body, err := googleapi.WithoutDataWrapper.JSONReader(c.objectaccesscontrol)
@@ -4012,7 +3597,6 @@ type DefaultObjectAccessControlsListCall struct {
 	urlParams_   gensupport.URLParams
 	ifNoneMatch_ string
 	ctx_         context.Context
-	header_      http.Header
 }
 
 // List: Retrieves default object ACL entries on the specified bucket.
@@ -4065,20 +3649,8 @@ func (c *DefaultObjectAccessControlsListCall) Context(ctx context.Context) *Defa
 	return c
 }
 
-// Header returns an http.Header that can be modified by the caller to
-// add HTTP headers to the request.
-func (c *DefaultObjectAccessControlsListCall) Header() http.Header {
-	if c.header_ == nil {
-		c.header_ = make(http.Header)
-	}
-	return c.header_
-}
-
 func (c *DefaultObjectAccessControlsListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	for k, v := range c.header_ {
-		reqHeaders[k] = v
-	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
 	if c.ifNoneMatch_ != "" {
 		reqHeaders.Set("If-None-Match", c.ifNoneMatch_)
@@ -4180,7 +3752,6 @@ type DefaultObjectAccessControlsPatchCall struct {
 	objectaccesscontrol *ObjectAccessControl
 	urlParams_          gensupport.URLParams
 	ctx_                context.Context
-	header_             http.Header
 }
 
 // Patch: Updates a default object ACL entry on the specified bucket.
@@ -4209,20 +3780,8 @@ func (c *DefaultObjectAccessControlsPatchCall) Context(ctx context.Context) *Def
 	return c
 }
 
-// Header returns an http.Header that can be modified by the caller to
-// add HTTP headers to the request.
-func (c *DefaultObjectAccessControlsPatchCall) Header() http.Header {
-	if c.header_ == nil {
-		c.header_ = make(http.Header)
-	}
-	return c.header_
-}
-
 func (c *DefaultObjectAccessControlsPatchCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	for k, v := range c.header_ {
-		reqHeaders[k] = v
-	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
 	var body io.Reader = nil
 	body, err := googleapi.WithoutDataWrapper.JSONReader(c.objectaccesscontrol)
@@ -4325,7 +3884,6 @@ type DefaultObjectAccessControlsUpdateCall struct {
 	objectaccesscontrol *ObjectAccessControl
 	urlParams_          gensupport.URLParams
 	ctx_                context.Context
-	header_             http.Header
 }
 
 // Update: Updates a default object ACL entry on the specified bucket.
@@ -4353,20 +3911,8 @@ func (c *DefaultObjectAccessControlsUpdateCall) Context(ctx context.Context) *De
 	return c
 }
 
-// Header returns an http.Header that can be modified by the caller to
-// add HTTP headers to the request.
-func (c *DefaultObjectAccessControlsUpdateCall) Header() http.Header {
-	if c.header_ == nil {
-		c.header_ = make(http.Header)
-	}
-	return c.header_
-}
-
 func (c *DefaultObjectAccessControlsUpdateCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	for k, v := range c.header_ {
-		reqHeaders[k] = v
-	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
 	var body io.Reader = nil
 	body, err := googleapi.WithoutDataWrapper.JSONReader(c.objectaccesscontrol)
@@ -4469,7 +4015,6 @@ type ObjectAccessControlsDeleteCall struct {
 	entity     string
 	urlParams_ gensupport.URLParams
 	ctx_       context.Context
-	header_    http.Header
 }
 
 // Delete: Permanently deletes the ACL entry for the specified entity on
@@ -4506,20 +4051,8 @@ func (c *ObjectAccessControlsDeleteCall) Context(ctx context.Context) *ObjectAcc
 	return c
 }
 
-// Header returns an http.Header that can be modified by the caller to
-// add HTTP headers to the request.
-func (c *ObjectAccessControlsDeleteCall) Header() http.Header {
-	if c.header_ == nil {
-		c.header_ = make(http.Header)
-	}
-	return c.header_
-}
-
 func (c *ObjectAccessControlsDeleteCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	for k, v := range c.header_ {
-		reqHeaders[k] = v
-	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
 	var body io.Reader = nil
 	c.urlParams_.Set("alt", alt)
@@ -4601,7 +4134,6 @@ type ObjectAccessControlsGetCall struct {
 	urlParams_   gensupport.URLParams
 	ifNoneMatch_ string
 	ctx_         context.Context
-	header_      http.Header
 }
 
 // Get: Returns the ACL entry for the specified entity on the specified
@@ -4648,20 +4180,8 @@ func (c *ObjectAccessControlsGetCall) Context(ctx context.Context) *ObjectAccess
 	return c
 }
 
-// Header returns an http.Header that can be modified by the caller to
-// add HTTP headers to the request.
-func (c *ObjectAccessControlsGetCall) Header() http.Header {
-	if c.header_ == nil {
-		c.header_ = make(http.Header)
-	}
-	return c.header_
-}
-
 func (c *ObjectAccessControlsGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	for k, v := range c.header_ {
-		reqHeaders[k] = v
-	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
 	if c.ifNoneMatch_ != "" {
 		reqHeaders.Set("If-None-Match", c.ifNoneMatch_)
@@ -4773,7 +4293,6 @@ type ObjectAccessControlsInsertCall struct {
 	objectaccesscontrol *ObjectAccessControl
 	urlParams_          gensupport.URLParams
 	ctx_                context.Context
-	header_             http.Header
 }
 
 // Insert: Creates a new ACL entry on the specified object.
@@ -4809,20 +4328,8 @@ func (c *ObjectAccessControlsInsertCall) Context(ctx context.Context) *ObjectAcc
 	return c
 }
 
-// Header returns an http.Header that can be modified by the caller to
-// add HTTP headers to the request.
-func (c *ObjectAccessControlsInsertCall) Header() http.Header {
-	if c.header_ == nil {
-		c.header_ = make(http.Header)
-	}
-	return c.header_
-}
-
 func (c *ObjectAccessControlsInsertCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	for k, v := range c.header_ {
-		reqHeaders[k] = v
-	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
 	var body io.Reader = nil
 	body, err := googleapi.WithoutDataWrapper.JSONReader(c.objectaccesscontrol)
@@ -4931,7 +4438,6 @@ type ObjectAccessControlsListCall struct {
 	urlParams_   gensupport.URLParams
 	ifNoneMatch_ string
 	ctx_         context.Context
-	header_      http.Header
 }
 
 // List: Retrieves ACL entries on the specified object.
@@ -4976,20 +4482,8 @@ func (c *ObjectAccessControlsListCall) Context(ctx context.Context) *ObjectAcces
 	return c
 }
 
-// Header returns an http.Header that can be modified by the caller to
-// add HTTP headers to the request.
-func (c *ObjectAccessControlsListCall) Header() http.Header {
-	if c.header_ == nil {
-		c.header_ = make(http.Header)
-	}
-	return c.header_
-}
-
 func (c *ObjectAccessControlsListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	for k, v := range c.header_ {
-		reqHeaders[k] = v
-	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
 	if c.ifNoneMatch_ != "" {
 		reqHeaders.Set("If-None-Match", c.ifNoneMatch_)
@@ -5094,7 +4588,6 @@ type ObjectAccessControlsPatchCall struct {
 	objectaccesscontrol *ObjectAccessControl
 	urlParams_          gensupport.URLParams
 	ctx_                context.Context
-	header_             http.Header
 }
 
 // Patch: Updates an ACL entry on the specified object. This method
@@ -5132,20 +4625,8 @@ func (c *ObjectAccessControlsPatchCall) Context(ctx context.Context) *ObjectAcce
 	return c
 }
 
-// Header returns an http.Header that can be modified by the caller to
-// add HTTP headers to the request.
-func (c *ObjectAccessControlsPatchCall) Header() http.Header {
-	if c.header_ == nil {
-		c.header_ = make(http.Header)
-	}
-	return c.header_
-}
-
 func (c *ObjectAccessControlsPatchCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	for k, v := range c.header_ {
-		reqHeaders[k] = v
-	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
 	var body io.Reader = nil
 	body, err := googleapi.WithoutDataWrapper.JSONReader(c.objectaccesscontrol)
@@ -5263,7 +4744,6 @@ type ObjectAccessControlsUpdateCall struct {
 	objectaccesscontrol *ObjectAccessControl
 	urlParams_          gensupport.URLParams
 	ctx_                context.Context
-	header_             http.Header
 }
 
 // Update: Updates an ACL entry on the specified object.
@@ -5300,20 +4780,8 @@ func (c *ObjectAccessControlsUpdateCall) Context(ctx context.Context) *ObjectAcc
 	return c
 }
 
-// Header returns an http.Header that can be modified by the caller to
-// add HTTP headers to the request.
-func (c *ObjectAccessControlsUpdateCall) Header() http.Header {
-	if c.header_ == nil {
-		c.header_ = make(http.Header)
-	}
-	return c.header_
-}
-
 func (c *ObjectAccessControlsUpdateCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	for k, v := range c.header_ {
-		reqHeaders[k] = v
-	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
 	var body io.Reader = nil
 	body, err := googleapi.WithoutDataWrapper.JSONReader(c.objectaccesscontrol)
@@ -5430,7 +4898,6 @@ type ObjectsComposeCall struct {
 	composerequest    *ComposeRequest
 	urlParams_        gensupport.URLParams
 	ctx_              context.Context
-	header_           http.Header
 }
 
 // Compose: Concatenates a list of existing objects into a new object in
@@ -5480,6 +4947,16 @@ func (c *ObjectsComposeCall) IfMetagenerationMatch(ifMetagenerationMatch int64) 
 	return c
 }
 
+// KmsKeyName sets the optional parameter "kmsKeyName": Resource name of
+// the Cloud KMS key, of the form
+// projects/my-project/locations/global/keyRings/my-kr/cryptoKeys/my-key,
+//  that will be used to encrypt the object. Overrides the object
+// metadata's kms_key_name value, if any.
+func (c *ObjectsComposeCall) KmsKeyName(kmsKeyName string) *ObjectsComposeCall {
+	c.urlParams_.Set("kmsKeyName", kmsKeyName)
+	return c
+}
+
 // Fields allows partial responses to be retrieved. See
 // https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
 // for more information.
@@ -5496,20 +4973,8 @@ func (c *ObjectsComposeCall) Context(ctx context.Context) *ObjectsComposeCall {
 	return c
 }
 
-// Header returns an http.Header that can be modified by the caller to
-// add HTTP headers to the request.
-func (c *ObjectsComposeCall) Header() http.Header {
-	if c.header_ == nil {
-		c.header_ = make(http.Header)
-	}
-	return c.header_
-}
-
 func (c *ObjectsComposeCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	for k, v := range c.header_ {
-		reqHeaders[k] = v
-	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
 	var body io.Reader = nil
 	body, err := googleapi.WithoutDataWrapper.JSONReader(c.composerequest)
@@ -5635,6 +5100,11 @@ func (c *ObjectsComposeCall) Do(opts ...googleapi.CallOption) (*Object, error) {
 	//       "format": "int64",
 	//       "location": "query",
 	//       "type": "string"
+	//     },
+	//     "kmsKeyName": {
+	//       "description": "Resource name of the Cloud KMS key, of the form projects/my-project/locations/global/keyRings/my-kr/cryptoKeys/my-key, that will be used to encrypt the object. Overrides the object metadata's kms_key_name value, if any.",
+	//       "location": "query",
+	//       "type": "string"
 	//     }
 	//   },
 	//   "path": "b/{destinationBucket}/o/{destinationObject}/compose",
@@ -5666,7 +5136,6 @@ type ObjectsCopyCall struct {
 	object            *Object
 	urlParams_        gensupport.URLParams
 	ctx_              context.Context
-	header_           http.Header
 }
 
 // Copy: Copies a source object to a destination object. Optionally
@@ -5808,20 +5277,8 @@ func (c *ObjectsCopyCall) Context(ctx context.Context) *ObjectsCopyCall {
 	return c
 }
 
-// Header returns an http.Header that can be modified by the caller to
-// add HTTP headers to the request.
-func (c *ObjectsCopyCall) Header() http.Header {
-	if c.header_ == nil {
-		c.header_ = make(http.Header)
-	}
-	return c.header_
-}
-
 func (c *ObjectsCopyCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	for k, v := range c.header_ {
-		reqHeaders[k] = v
-	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
 	var body io.Reader = nil
 	body, err := googleapi.WithoutDataWrapper.JSONReader(c.object)
@@ -6046,7 +5503,6 @@ type ObjectsDeleteCall struct {
 	object     string
 	urlParams_ gensupport.URLParams
 	ctx_       context.Context
-	header_    http.Header
 }
 
 // Delete: Deletes an object and its metadata. Deletions are permanent
@@ -6116,20 +5572,8 @@ func (c *ObjectsDeleteCall) Context(ctx context.Context) *ObjectsDeleteCall {
 	return c
 }
 
-// Header returns an http.Header that can be modified by the caller to
-// add HTTP headers to the request.
-func (c *ObjectsDeleteCall) Header() http.Header {
-	if c.header_ == nil {
-		c.header_ = make(http.Header)
-	}
-	return c.header_
-}
-
 func (c *ObjectsDeleteCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	for k, v := range c.header_ {
-		reqHeaders[k] = v
-	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
 	var body io.Reader = nil
 	c.urlParams_.Set("alt", alt)
@@ -6227,7 +5671,6 @@ type ObjectsGetCall struct {
 	urlParams_   gensupport.URLParams
 	ifNoneMatch_ string
 	ctx_         context.Context
-	header_      http.Header
 }
 
 // Get: Retrieves an object or its metadata.
@@ -6316,20 +5759,8 @@ func (c *ObjectsGetCall) Context(ctx context.Context) *ObjectsGetCall {
 	return c
 }
 
-// Header returns an http.Header that can be modified by the caller to
-// add HTTP headers to the request.
-func (c *ObjectsGetCall) Header() http.Header {
-	if c.header_ == nil {
-		c.header_ = make(http.Header)
-	}
-	return c.header_
-}
-
 func (c *ObjectsGetCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	for k, v := range c.header_ {
-		reqHeaders[k] = v
-	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
 	if c.ifNoneMatch_ != "" {
 		reqHeaders.Set("If-None-Match", c.ifNoneMatch_)
@@ -6495,7 +5926,6 @@ type ObjectsInsertCall struct {
 	mediaSize_       int64 // mediaSize, if known.  Used only for calls to progressUpdater_.
 	progressUpdater_ googleapi.ProgressUpdater
 	ctx_             context.Context
-	header_          http.Header
 }
 
 // Insert: Stores a new object and metadata.
@@ -6547,6 +5977,16 @@ func (c *ObjectsInsertCall) IfMetagenerationMatch(ifMetagenerationMatch int64) *
 // value.
 func (c *ObjectsInsertCall) IfMetagenerationNotMatch(ifMetagenerationNotMatch int64) *ObjectsInsertCall {
 	c.urlParams_.Set("ifMetagenerationNotMatch", fmt.Sprint(ifMetagenerationNotMatch))
+	return c
+}
+
+// KmsKeyName sets the optional parameter "kmsKeyName": Resource name of
+// the Cloud KMS key, of the form
+// projects/my-project/locations/global/keyRings/my-kr/cryptoKeys/my-key,
+//  that will be used to encrypt the object. Overrides the object
+// metadata's kms_key_name value, if any.
+func (c *ObjectsInsertCall) KmsKeyName(kmsKeyName string) *ObjectsInsertCall {
+	c.urlParams_.Set("kmsKeyName", kmsKeyName)
 	return c
 }
 
@@ -6658,20 +6098,8 @@ func (c *ObjectsInsertCall) Context(ctx context.Context) *ObjectsInsertCall {
 	return c
 }
 
-// Header returns an http.Header that can be modified by the caller to
-// add HTTP headers to the request.
-func (c *ObjectsInsertCall) Header() http.Header {
-	if c.header_ == nil {
-		c.header_ = make(http.Header)
-	}
-	return c.header_
-}
-
 func (c *ObjectsInsertCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	for k, v := range c.header_ {
-		reqHeaders[k] = v
-	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
 	var body io.Reader = nil
 	body, err := googleapi.WithoutDataWrapper.JSONReader(c.object)
@@ -6833,6 +6261,11 @@ func (c *ObjectsInsertCall) Do(opts ...googleapi.CallOption) (*Object, error) {
 	//       "location": "query",
 	//       "type": "string"
 	//     },
+	//     "kmsKeyName": {
+	//       "description": "Resource name of the Cloud KMS key, of the form projects/my-project/locations/global/keyRings/my-kr/cryptoKeys/my-key, that will be used to encrypt the object. Overrides the object metadata's kms_key_name value, if any.",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
 	//     "name": {
 	//       "description": "Name of the object. Required when the object metadata is not otherwise provided. Overrides the object metadata's name value, if any. For information about how to URL encode object names to be path safe, see Encoding URI Path Parts.",
 	//       "location": "query",
@@ -6900,7 +6333,6 @@ type ObjectsListCall struct {
 	urlParams_   gensupport.URLParams
 	ifNoneMatch_ string
 	ctx_         context.Context
-	header_      http.Header
 }
 
 // List: Retrieves a list of objects matching the criteria.
@@ -6990,20 +6422,8 @@ func (c *ObjectsListCall) Context(ctx context.Context) *ObjectsListCall {
 	return c
 }
 
-// Header returns an http.Header that can be modified by the caller to
-// add HTTP headers to the request.
-func (c *ObjectsListCall) Header() http.Header {
-	if c.header_ == nil {
-		c.header_ = make(http.Header)
-	}
-	return c.header_
-}
-
 func (c *ObjectsListCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	for k, v := range c.header_ {
-		reqHeaders[k] = v
-	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
 	if c.ifNoneMatch_ != "" {
 		reqHeaders.Set("If-None-Match", c.ifNoneMatch_)
@@ -7158,7 +6578,6 @@ type ObjectsPatchCall struct {
 	object2    *Object
 	urlParams_ gensupport.URLParams
 	ctx_       context.Context
-	header_    http.Header
 }
 
 // Patch: Updates an object's metadata. This method supports patch
@@ -7259,20 +6678,8 @@ func (c *ObjectsPatchCall) Context(ctx context.Context) *ObjectsPatchCall {
 	return c
 }
 
-// Header returns an http.Header that can be modified by the caller to
-// add HTTP headers to the request.
-func (c *ObjectsPatchCall) Header() http.Header {
-	if c.header_ == nil {
-		c.header_ = make(http.Header)
-	}
-	return c.header_
-}
-
 func (c *ObjectsPatchCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	for k, v := range c.header_ {
-		reqHeaders[k] = v
-	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
 	var body io.Reader = nil
 	body, err := googleapi.WithoutDataWrapper.JSONReader(c.object2)
@@ -7441,7 +6848,6 @@ type ObjectsRewriteCall struct {
 	object            *Object
 	urlParams_        gensupport.URLParams
 	ctx_              context.Context
-	header_           http.Header
 }
 
 // Rewrite: Rewrites a source object to a destination object. Optionally
@@ -7453,6 +6859,17 @@ func (r *ObjectsService) Rewrite(sourceBucket string, sourceObject string, desti
 	c.destinationBucket = destinationBucket
 	c.destinationObject = destinationObject
 	c.object = object
+	return c
+}
+
+// DestinationKmsKeyName sets the optional parameter
+// "destinationKmsKeyName": Resource name of the Cloud KMS key, of the
+// form
+// projects/my-project/locations/global/keyRings/my-kr/cryptoKeys/my-key,
+//  that will be used to encrypt the object. Overrides the object
+// metadata's kms_key_name value, if any.
+func (c *ObjectsRewriteCall) DestinationKmsKeyName(destinationKmsKeyName string) *ObjectsRewriteCall {
+	c.urlParams_.Set("destinationKmsKeyName", destinationKmsKeyName)
 	return c
 }
 
@@ -7608,20 +7025,8 @@ func (c *ObjectsRewriteCall) Context(ctx context.Context) *ObjectsRewriteCall {
 	return c
 }
 
-// Header returns an http.Header that can be modified by the caller to
-// add HTTP headers to the request.
-func (c *ObjectsRewriteCall) Header() http.Header {
-	if c.header_ == nil {
-		c.header_ = make(http.Header)
-	}
-	return c.header_
-}
-
 func (c *ObjectsRewriteCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	for k, v := range c.header_ {
-		reqHeaders[k] = v
-	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
 	var body io.Reader = nil
 	body, err := googleapi.WithoutDataWrapper.JSONReader(c.object)
@@ -7695,6 +7100,11 @@ func (c *ObjectsRewriteCall) Do(opts ...googleapi.CallOption) (*RewriteResponse,
 	//       "description": "Name of the bucket in which to store the new object. Overrides the provided object metadata's bucket value, if any.",
 	//       "location": "path",
 	//       "required": true,
+	//       "type": "string"
+	//     },
+	//     "destinationKmsKeyName": {
+	//       "description": "Resource name of the Cloud KMS key, of the form projects/my-project/locations/global/keyRings/my-kr/cryptoKeys/my-key, that will be used to encrypt the object. Overrides the object metadata's kms_key_name value, if any.",
+	//       "location": "query",
 	//       "type": "string"
 	//     },
 	//     "destinationObject": {
@@ -7840,7 +7250,6 @@ type ObjectsUpdateCall struct {
 	object2    *Object
 	urlParams_ gensupport.URLParams
 	ctx_       context.Context
-	header_    http.Header
 }
 
 // Update: Updates an object's metadata.
@@ -7940,20 +7349,8 @@ func (c *ObjectsUpdateCall) Context(ctx context.Context) *ObjectsUpdateCall {
 	return c
 }
 
-// Header returns an http.Header that can be modified by the caller to
-// add HTTP headers to the request.
-func (c *ObjectsUpdateCall) Header() http.Header {
-	if c.header_ == nil {
-		c.header_ = make(http.Header)
-	}
-	return c.header_
-}
-
 func (c *ObjectsUpdateCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	for k, v := range c.header_ {
-		reqHeaders[k] = v
-	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
 	var body io.Reader = nil
 	body, err := googleapi.WithoutDataWrapper.JSONReader(c.object2)
@@ -8137,7 +7534,6 @@ type ObjectsWatchAllCall struct {
 	channel    *Channel
 	urlParams_ gensupport.URLParams
 	ctx_       context.Context
-	header_    http.Header
 }
 
 // WatchAll: Watch for changes on all objects in a bucket.
@@ -8218,20 +7614,8 @@ func (c *ObjectsWatchAllCall) Context(ctx context.Context) *ObjectsWatchAllCall 
 	return c
 }
 
-// Header returns an http.Header that can be modified by the caller to
-// add HTTP headers to the request.
-func (c *ObjectsWatchAllCall) Header() http.Header {
-	if c.header_ == nil {
-		c.header_ = make(http.Header)
-	}
-	return c.header_
-}
-
 func (c *ObjectsWatchAllCall) doRequest(alt string) (*http.Response, error) {
 	reqHeaders := make(http.Header)
-	for k, v := range c.header_ {
-		reqHeaders[k] = v
-	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
 	var body io.Reader = nil
 	body, err := googleapi.WithoutDataWrapper.JSONReader(c.channel)

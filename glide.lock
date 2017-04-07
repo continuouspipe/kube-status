@@ -1,11 +1,13 @@
-hash: e653edb6a2bb412646666dbbd26ceeeef03228e42c703d4898439ea196eb6528
-updated: 2017-03-22T14:55:35.544821699Z
+hash: 78a218e196531d49b6f6e4503a3a22b89766953b2db39bede3088250c98a2e14
+updated: 2017-04-07T14:09:34.397916944+01:00
 imports:
 - name: cloud.google.com/go
-  version: 3b1ae45394a234c385be014e9a488f2bb6eef821
+  version: 2e6a95edb1071d750f6d7db777bf66cd2997af6c
   subpackages:
   - compute/metadata
   - internal
+  - internal/optional
+  - storage
 - name: github.com/blang/semver
   version: 31b736133b98f26d5e078ec9eb591666edfd091f
 - name: github.com/coreos/go-oidc
@@ -85,6 +87,8 @@ imports:
   - proto
 - name: github.com/google/gofuzz
   version: bbcb9da2d746f8bdbd6a936686a0a6067ada0ec5
+- name: github.com/googleapis/gax-go
+  version: 9af46dd5a1713e8b5cd71106287eba3cefdde50b
 - name: github.com/gorilla/context
   version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
 - name: github.com/gorilla/mux
@@ -131,16 +135,12 @@ imports:
   subpackages:
   - context
   - context/ctxhttp
-  - html
-  - html/atom
   - http2
   - http2/hpack
   - idna
   - internal/timeseries
   - lex/httplex
-  - proxy
   - trace
-  - websocket
 - name: golang.org/x/oauth2
   version: 3c3a985cb79f52a3190fbc056984415ca6763d01
   subpackages:
@@ -165,6 +165,17 @@ imports:
   - unicode/bidi
   - unicode/norm
   - width
+- name: google.golang.org/api
+  version: a69f0f19d246419bb931b0ac8f4f8d3f3e6d4feb
+  subpackages:
+  - gensupport
+  - googleapi
+  - googleapi/internal/uritemplates
+  - internal
+  - iterator
+  - option
+  - storage/v1
+  - transport
 - name: google.golang.org/appengine
   version: 4f7eeb5305a4ba1966344836ba4af9996b7b4e05
   subpackages:
@@ -175,16 +186,26 @@ imports:
   - internal/log
   - internal/modules
   - internal/remote_api
+  - internal/socket
   - internal/urlfetch
+  - socket
   - urlfetch
+- name: google.golang.org/grpc
+  version: 231b4cfea0e79843053a33f5fe90bd4d84b23cd3
+  subpackages:
+  - codes
+  - credentials
+  - credentials/oauth
+  - grpclog
+  - internal
+  - metadata
+  - naming
+  - peer
+  - transport
 - name: gopkg.in/inf.v0
   version: 3887ee99ecf07df5b447e9b00d9c0b2adaa9f3e4
 - name: gopkg.in/yaml.v2
   version: 53feefa2559fb8dfa8d81baad31be332c97d6c77
-- name: k8s.io/apimachinery
-  version: 75b8dd260ef0469d96d578705a87cffd0e09dab8
-  subpackages:
-  - pkg/apis/meta/v1
 - name: k8s.io/kubernetes
   version: 42fe4ab0270e44c750d77c682e2fcab394aeb392
   subpackages:
