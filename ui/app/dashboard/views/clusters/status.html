@@ -37,14 +37,17 @@
                                         <div class="resource-usage" ng-style="{
                                             'height': node.resources.percentOfAvailable.memory.requests+'%',
                                             'background-color': colour_from_percents(node.resources.percentOfAvailable.memory.requests)
-                                        }" md-colou></div>
+                                        }"></div>
                                     </div>
                                 </div>
                                 <div class="resource">
                                     <div class="resource-title">Vol.</div>
                                     <div class="resource-container">
                                         <div class="resource-value">{{ node.volumesInUse }}</div>
-                                        <div class="resource-usage">?</div>
+                                        <div class="resource-usage" ng-style="{
+                                            'height': node_used_volumes_in_percents(node)+'%',
+                                            'background-color': colour_from_percents(node_used_volumes_in_percents(node))
+                                        }"></div>
                                     </div>
                                 </div>
                             </div>

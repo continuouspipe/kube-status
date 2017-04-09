@@ -29,6 +29,10 @@ angular.module('kubeStatus')
             });
         };
 
+        $scope.node_used_volumes_in_percents = function(node) {
+            return (node.volumesInUse / 16) * 100;
+        };
+
         var byNode = function(podsByNamespace, nodeName) {
             var filteredPodsByNode = {};
 
