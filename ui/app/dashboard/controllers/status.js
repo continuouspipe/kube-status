@@ -7,7 +7,7 @@ angular.module('kubeStatus')
 
             $scope.podsByNode = {};
             status.nodes.forEach(function(node) {
-                $scope.podsByNode[node.name] = byNode(status.pods, node);
+                $scope.podsByNode[node.name] = byNode(status.pods, node.name);
             });
         });
 
@@ -29,12 +29,12 @@ angular.module('kubeStatus')
             });
         };
 
-        var byNode = function(podsByNamespace, node) {
+        var byNode = function(podsByNamespace, nodeName) {
             var filteredPodsByNode = {};
 
             for (var namespace in podsByNamespace) {
                 podsByNamespace[namespace].forEach(function(pod) {
-                    if (pod.nodeName != node.name) {
+                    if (pod.nodeName != nodeName) {
                         return;
                     }
 
