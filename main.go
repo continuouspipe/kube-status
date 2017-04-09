@@ -24,7 +24,7 @@ import (
 var envListenAddress, _ = os.LookupEnv("KUBE_STATUS_LISTEN_ADDRESS") //e.g.: https://localhost:80
 
 func main() {
-	//parse the flags before glog start using them
+	listProviderType := flag.String("cluster-list", "in-memory", "the cluster list provider")
 	flag.Parse()
 
 	glog.Infof("starting kube status api listening at address %s", envListenAddress)
@@ -38,7 +38,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	clusterList := clustersprovider.NewCPClusterList()
+	var clusterList clustersprovider.ClusterListProvider
+	if "in-memory" == *listProviderType {
+		clusterList = clustersprovider.NewInMemoryClusterList()
+	} else {
+		clusterList = clustersprovider.NewCPClusterList()
+	}
+
 	snapshotHandler := datasnapshots.NewDataSnapshotHandler(
 		clusterList,
 		datasnapshots.NewClusterSnapshot(),
