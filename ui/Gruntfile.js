@@ -436,12 +436,7 @@ module.exports = function (grunt) {
           dest: '.tmp/scripts/config.js'
         },
         constants: {
-          RIVER_API_URL: process.env.RIVER_API_URL,
-          AUTHENTICATOR_API_URL: process.env.AUTHENTICATOR_API_URL,
-          LOG_STREAM_API_URL: process.env.LOG_STREAM_API_URL,
-          PIPE_API_URL: process.env.PIPE_API_URL,
-          SENTRY_DSN: process.env.SENTRY_DSN,
-          TIMELINE_API_URL: process.env.TIMELINE_API_URL          
+          API_URL: process.env.API_URL    
         }
       }
     },

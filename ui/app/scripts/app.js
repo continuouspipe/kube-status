@@ -15,8 +15,6 @@ angular
     .config(function ($urlRouterProvider, $locationProvider, $mdThemingProvider) {
         $urlRouterProvider.otherwise('/');
         $locationProvider.html5Mode(true);
-
-        $mdThemingProvider.theme('blue');
     })
     .run(function($rootScope, $http) {
         $http.getError = function (error) {

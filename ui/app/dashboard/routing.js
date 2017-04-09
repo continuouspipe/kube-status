@@ -13,5 +13,20 @@ angular.module('kubeStatus')
                     }
                 }
             })
+            .state('cluster-status', {
+                url: '/cluster/:clusterIdentifier/status',
+                parent: 'layout',
+                views: {
+                    'content@': {
+                        templateUrl: 'dashboard/views/clusters/status.html',
+                        controller: 'ClusterStatusController'
+                    }
+                },
+                resolve: {
+                    cluster: function(ClusterRepository, $stateParams) {
+                        return ClusterRepository.find($stateParams.clusterIdentifier);
+                    }
+                }
+            })
         ;
     });

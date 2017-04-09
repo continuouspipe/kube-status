@@ -25,13 +25,13 @@
     your browser</a> to improve your experience.</p>
 <![endif]-->
 
+<!--
 <md-toolbar layout="row" ui-view="header"></md-toolbar>
+-->
 
 <div flex layout="row">
     <md-sidenav md-is-open="aside" md-is-locked-open="aside" class="sidebar" ui-view="aside"></md-sidenav>
-    <md-content flex class="content" layout="column" ui-view="content" ng-controller="ClustersController">
-        List: <a ui-sref="clusters">Clusters!</a>
-    </md-content>
+    <md-content flex class="content" layout="column" ui-view="content"></md-content>
 </div>
 
 <!-- build:js(.) scripts/vendor.js -->
@@ -63,9 +63,11 @@
 <script src="scripts/app.js"></script>
 
 <script src="dashboard/controllers/clusters.js"></script>
+<script src="dashboard/controllers/status.js"></script>
 <script src="dashboard/routing.js"></script>
 
 <script src="models/cluster.js"></script>
+<script src="models/status.js"></script>
 
 <script src="layout/controllers/error.js"></script>
 <script src="layout/directives/remote-resource.js"></script>
