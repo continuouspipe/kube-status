@@ -3,9 +3,10 @@ package clustersprovider
 
 //ClusterRequested contains the information required to fetch the cluster status
 type Cluster struct {
-	Address  string `json:"address"`
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Identifier string `json:"identifier"`
+	Address  string   `json:"address"`
+	Username string   `json:"username"`
+	Password string   `json:"password"`
 }
 
 //ClusterListProvider returns a list of clusters
