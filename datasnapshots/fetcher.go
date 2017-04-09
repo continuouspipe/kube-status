@@ -13,6 +13,7 @@ import (
 	clientcmdapi "k8s.io/kubernetes/pkg/client/unversioned/clientcmd/api"
 	"k8s.io/kubernetes/pkg/fields"
 	"strconv"
+	"time"
 )
 
 //ClusterFullStatusResponse top level of the individual cluster status response
@@ -65,6 +66,7 @@ type ClusterFullStatusPod struct {
 	CreationTimestamp string                       `json:"creationTimestamp"`
 	IsReady           bool                         `json:"isReady"`
 	Containers        []ClusterFullStatusContainer `json:"containers"`
+	NodeName		  string					   `json:"nodeName"`
 	Events            []kubernetesapi.Event        `json:"events"`
 }
 
@@ -245,7 +247,7 @@ func getStatusNodes(podLists *map[string]*kubernetesapi.PodList, nodes *kubernet
 
 		statusNodes = append(statusNodes, ClusterFullStatusNode{
 			node.Name,
-			node.GetCreationTimestamp().String(),
+			node.GetCreationTimestamp().UTC().Format(time.RFC3339),
 			string(node.Status.Conditions[totalConditions-1].Type),
 			ClusterFullStatusResources{
 				ClusterFullStatusRequestLimits{
@@ -376,9 +378,10 @@ func getStatusPods(podLists *map[string]*kubernetesapi.PodList, podsEvents map[s
 			statusPods[pod.GetNamespace()] = append(statusPods[pod.GetNamespace()], ClusterFullStatusPod{
 				pod.GetName(),
 				string(pod.Status.Phase),
-				pod.GetCreationTimestamp().String(),
+				pod.GetCreationTimestamp().UTC().Format(time.RFC3339),
 				isPodReady,
 				statusContainers,
+				pod.Spec.NodeName,
 				podsEvents[pod.GetName()],
 			})
 		}

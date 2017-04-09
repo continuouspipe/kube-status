@@ -4,6 +4,11 @@ angular.module('kubeStatus')
 
         $remoteResource.load('status', StatusFetcher.findByCluster(cluster)).then(function (status) {
             $scope.status = status;
+
+            $scope.podsByNode = {};
+            status.nodes.forEach(function(node) {
+                $scope.podsByNode[node.name] = byNode(status.pods, node);
+            });
         });
 
         $scope.showPodDetails = function(namespace, pod) {
@@ -22,6 +27,26 @@ angular.module('kubeStatus')
                 clickOutsideToClose:true,
                 scope: scope
             });
+        };
+
+        var byNode = function(podsByNamespace, node) {
+            var filteredPodsByNode = {};
+
+            for (var namespace in podsByNamespace) {
+                podsByNamespace[namespace].forEach(function(pod) {
+                    if (pod.nodeName != node.name) {
+                        return;
+                    }
+
+                    if (!(namespace in filteredPodsByNode)) {
+                        filteredPodsByNode[namespace] = [];
+                    }
+
+                    filteredPodsByNode[namespace].push(pod);
+                });
+            }
+
+            return filteredPodsByNode;
         };
 
         $scope.colour_from_percents = function(percents) {
