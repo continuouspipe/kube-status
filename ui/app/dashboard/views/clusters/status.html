@@ -7,12 +7,8 @@
     </div>
 </md-toolbar>
 <md-content flex id="content" class="card-grid">
-    <remote-resource resource-name="status">
-        <div class="md-primary md-subheader" role="heading">
-            <div class="md-subheader-inner">
-                <div class="md-subheader-content"><span>Nodes</span></div>
-            </div>
-        </div>
+    <remote-resource resource-name="status">    
+        <md-subheader class="md-primary md-no-sticky">Nodes</md-subheader>
         <md-content class="status-nodes">
             <md-card ng-repeat="node in status.nodes" class="node">
                 <md-card-title ng-style="{'background-color': colour_from_node_status(node.status)}">
@@ -55,29 +51,25 @@
             </md-card>
         </md-content>
 
-        <div class="md-primary md-subheader" role="heading">
-            <div class="md-subheader-inner">
-                <div class="md-subheader-content"><span>Pods</span></div>
-            </div>
-        </div>
-        <md-content class="status-pods">
+        <md-subheader class="md-primary md-no-sticky">
+            Pods
+            <md-button class="md-raised md-primary" ng-click="displayNamespace = !displayNamespace;">Toggle namespaces</md-button>
+        </md-subheader>
+        <md-content class="status-pods" ng-class="{'display-namespace-name': displayNamespace}">
             <div class="pod-namespace" ng-repeat="(namespace, pods) in status.pods">
                 <div class="namespace-name">{{ namespace }}</div>
                 <div class="pods">
                     <div ng-repeat="pod in pods"
                          class="pod"
                          ng-style="{'background-color': colour_from_pod(pod)}"
-                         title="{{ pod.name }}">
+                         title="{{ pod.name }}"
+                         ng-click="showPodDetails(namespace, pod)">
                     </div>
                 </div>
             </div>
         </md-content>
 
-        <div class="md-primary md-subheader" role="heading">
-            <div class="md-subheader-inner">
-                <div class="md-subheader-content"><span>Raw status</span></div>
-            </div>
-        </div>
+        <md-subheader class="md-primary md-no-sticky">Raw status</md-subheader>
         <pre>{{ status }}</pre>
     </remote-resource>
 </md-content>

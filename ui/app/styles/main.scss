@@ -1,25 +1,38 @@
 @import "vars";
 @import "mixins";
+@import "tables";
 
 .mobile-only {
     @include largeScreen {
         display: none;
     }
 }
-.status-pods .pod-namespace {
-    border: 1px dotted #999;
-    float: left;
-    padding: 5px;
 
-    .namespace-name {
-        display: none;
+.remote-resource.loading {
+    margin-top: 50px;
+}
+
+.status-pods {
+    .pod-namespace {
+        border: 1px dotted #999;
+        float: left;
+        padding: 5px;
+
+        .namespace-name {
+            display: none;
+        }
+
+        .pod {
+            display: inline-block;
+            background: #ccc;
+            width: 20px;
+            height: 20px;
+            margin-right: 1px;
+        }
     }
 
-    .pod {
-        display: inline-block;
-        background: #ccc;
-        width: 20px;
-        height: 20px;
+    &.display-namespace-name .pod-namespace .namespace-name {
+        display: block;
     }
 }
 
