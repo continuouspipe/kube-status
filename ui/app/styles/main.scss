@@ -1,0 +1,9 @@
+@import "vars";
+@import "mixins";
+
+.mobile-only {
+    @include largeScreen {
+        display: none;
+    }
+}
+
