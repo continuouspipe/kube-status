@@ -81,6 +81,7 @@ type ClusterFullStatusContainer struct {
 type ClusterSnapshooter interface {
 	Add(cluster clustersprovider.Cluster)
 	Fetch() ([]byte, errors.ErrorListProvider)
+	FetchCluster(requestedCluster clustersprovider.Cluster) (*ClusterFullStatusResponse, error)
 }
 
 //ClusterSnapshot takes the full status of one or more clusters and returns it as a json formatted string
@@ -102,80 +103,17 @@ func (s *ClusterSnapshot) Add(cluster clustersprovider.Cluster) {
 //Fetch retrieves the cluster statuses for all the clusters
 func (s *ClusterSnapshot) Fetch() ([]byte, errors.ErrorListProvider) {
 	el := errors.NewErrorList()
-	el.AddErrorf("An error occured when Fetching the cluster statuses")
 
 	for _, requestedCluster := range s.clusters {
 
-		ctx := clientcmdapi.NewContext()
-		cfg := clientcmdapi.NewConfig()
-		authInfo := clientcmdapi.NewAuthInfo()
-
-		authInfo.Username = requestedCluster.Username
-		authInfo.Password = requestedCluster.Password
-
-		cluster := clientcmdapi.NewCluster()
-		cluster.Server = requestedCluster.Address
-		cluster.InsecureSkipTLSVerify = true
-
-		cfg.Contexts = map[string]*clientcmdapi.Context{"default": ctx}
-		cfg.CurrentContext = "default"
-		overrides := clientcmd.ConfigOverrides{
-			ClusterInfo: *cluster,
-			AuthInfo:    *authInfo,
-		}
-
-		clientConfig := clientcmd.NewNonInteractiveClientConfig(*cfg, "default", &overrides, nil)
-
-		restConfig, err := clientConfig.ClientConfig()
+		fullStatus, err := s.FetchCluster(requestedCluster)
 		if err != nil {
-			el.AddErrorf("error when creating the rest config")
 			el.Add(err)
-			return []byte{}, el
-		}
-
-		clientset, err := internalclientset.NewForConfig(restConfig)
-		if err != nil {
-			el.AddErrorf("error when creating the client api")
-			el.Add(err)
-			return []byte{}, el
-		}
-
-		nodes, err := clientset.Core().Nodes().List(kubernetesapi.ListOptions{})
-		if err != nil {
-			el.AddErrorf("error when getting the node list")
-			el.Add(err)
-			return []byte{}, el
-		}
-
-		podLists, errList := getPodListByNode(clientset, nodes)
-		if len(errList.Items()) > 0 {
-			return []byte{}, errList
-		}
-
-		statusCluster := getStatusCluster()
-		statusNodes, errList := getStatusNodes(podLists, nodes)
-		if len(errList.Items()) > 0 {
-			return []byte{}, errList
-		}
-
-		podsEvents, errList := getPodsEvents(clientset, podLists)
-		if len(errList.Items()) > 0 {
-			return []byte{}, errList
-		}
-
-		statusPods, err := getStatusPods(podLists, podsEvents)
-		if err != nil {
-			el.AddErrorf("error when getting the pod statuses")
-			el.Add(err)
-			return []byte{}, el
+			continue
 		}
 
 		//Build the full status response
-		s.clusterStatuses = append(s.clusterStatuses, ClusterFullStatusResponse{
-			statusCluster,
-			statusNodes,
-			*statusPods,
-		})
+		s.clusterStatuses = append(s.clusterStatuses, *fullStatus)
 	}
 	statuses, err := json.Marshal(s.clusterStatuses)
 	if err != nil {
@@ -186,6 +124,71 @@ func (s *ClusterSnapshot) Fetch() ([]byte, errors.ErrorListProvider) {
 
 	return statuses, nil
 }
+
+func (s *ClusterSnapshot) FetchCluster(requestedCluster clustersprovider.Cluster) (*ClusterFullStatusResponse, error) {
+	ctx := clientcmdapi.NewContext()
+	cfg := clientcmdapi.NewConfig()
+	authInfo := clientcmdapi.NewAuthInfo()
+
+	authInfo.Username = requestedCluster.Username
+	authInfo.Password = requestedCluster.Password
+
+	cluster := clientcmdapi.NewCluster()
+	cluster.Server = requestedCluster.Address
+	cluster.InsecureSkipTLSVerify = true
+
+	cfg.Contexts = map[string]*clientcmdapi.Context{"default": ctx}
+	cfg.CurrentContext = "default"
+	overrides := clientcmd.ConfigOverrides{
+		ClusterInfo: *cluster,
+		AuthInfo:    *authInfo,
+	}
+
+	clientConfig := clientcmd.NewNonInteractiveClientConfig(*cfg, "default", &overrides, nil)
+
+	restConfig, err := clientConfig.ClientConfig()
+	if err != nil {
+		return nil, fmt.Errorf("error when creating the rest config")
+	}
+
+	clientset, err := internalclientset.NewForConfig(restConfig)
+	if err != nil {
+		return nil, fmt.Errorf("error when creating the client api")
+	}
+
+	nodes, err := clientset.Core().Nodes().List(kubernetesapi.ListOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("error when creating the client api")
+	}
+
+	podLists, errList := getPodListByNode(clientset, nodes)
+	if len(errList.Items()) > 0 {
+		return nil, errList
+	}
+
+	statusCluster := getStatusCluster()
+	statusNodes, errList := getStatusNodes(podLists, nodes)
+	if len(errList.Items()) > 0 {
+		return nil, errList
+	}
+
+	podsEvents, errList := getPodsEvents(clientset, podLists)
+	if len(errList.Items()) > 0 {
+		return nil, errList
+	}
+
+	statusPods, err := getStatusPods(podLists, podsEvents)
+	if err != nil {
+		return nil, fmt.Errorf("error when getting the pod statuses")
+	}
+
+	return &ClusterFullStatusResponse{
+		statusCluster,
+		statusNodes,
+		*statusPods,
+	}, nil
+}
+
 
 func getStatusCluster() ClusterFullStatusResources {
 	return ClusterFullStatusResources{

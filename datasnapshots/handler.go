@@ -4,7 +4,7 @@ package datasnapshots
 import (
 	"github.com/continuouspipe/kube-status/clustersprovider"
 	"github.com/continuouspipe/kube-status/errors"
-	"github.com/golang/glog"
+//	"github.com/golang/glog"
 	"time"
 )
 
@@ -36,14 +36,14 @@ func (h DataSnapshotHandler) Handle() {
 				h.clusterSnapshooter.Add(cluster)
 			}
 
-			_, elr := h.clusterSnapshooter.Fetch()
-			if len(elr.Items()) > 0 {
-				el.AddErrorf("error occured when fetching the kubernetes status snapshot")
-				el.Add(elr.Items()...)
-				glog.Error(el)
-				glog.Flush()
-				return
-			}
+//			_, elr := h.clusterSnapshooter.Fetch()
+//			if len(elr.Items()) > 0 {
+//				el.AddErrorf("error occured when fetching the kubernetes status snapshot")
+//				el.Add(elr.Items()...)
+//				glog.Error(el)
+//				glog.Flush()
+//				return
+//			}
 
 			//store res in bucket
 

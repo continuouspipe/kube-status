@@ -46,19 +46,27 @@ func main() {
 		clusterList = clustersprovider.NewCPClusterList()
 	}
 
+	snapshooter := datasnapshots.NewClusterSnapshot()
 	snapshotHandler := datasnapshots.NewDataSnapshotHandler(
 		clusterList,
-		datasnapshots.NewClusterSnapshot(),
+		snapshooter,
 	)
 	go snapshotHandler.Handle()
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", rootHandle)
-	r.HandleFunc(api.ClusterFullStatusURLPath, api.NewClusterFullStatusH().Handle).Methods(http.MethodPost)
+	r.HandleFunc(api.ClusterFullStatusURLPath, api.NewClusterFullStatusH(snapshooter).Handle).Methods(http.MethodPost)
 	r.HandleFunc(api.ClusterHistoryURLPath, api.NewClusterHistoryH().Handle).Methods(http.MethodPost)
 	r.HandleFunc(api.ClusterListURLPath, api.NewClusterListHandler(clusterList).Handle).Methods(http.MethodGet)
 
-	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With"})
+	headersOk := handlers.AllowedHeaders([]string{
+		"Accept",
+		"Accept-Encoding",
+		"Accept-Language",
+		"Content-Type",
+		"Origin",
+		"X-Requested-With",
+	})
 	originsOk := handlers.AllowedOrigins([]string{"*"})
 	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
 
