@@ -1,5 +1,5 @@
-hash: 5a0379ea680807d58e9aca4fb692056ffdffa37d64848a3b604f83fb356fb92a
-updated: 2017-04-07T16:49:07.469231561+01:00
+hash: 9c62c1c0951b431e2bb9df60395b2330dbd307f52b6530f4762ced0a941a6b3e
+updated: 2017-04-09T15:11:49.026241624+01:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -88,6 +88,8 @@ imports:
   version: bbcb9da2d746f8bdbd6a936686a0a6067ada0ec5
 - name: github.com/gorilla/context
   version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
+- name: github.com/gorilla/handlers
+  version: 3a5767ca75ece5f7f1440b1d16975247f8d8b221
 - name: github.com/gorilla/mux
   version: 599cba5e7b6137d46ddf58fb1765f5d928e69604
 - name: github.com/howeyc/gopass

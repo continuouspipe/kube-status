@@ -124,3 +124,5 @@ import:
 - package: golang.org/x/net
   subpackages:
   - context
+- package: github.com/gorilla/handlers
+  version: ^1.2.0

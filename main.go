@@ -16,6 +16,7 @@ import (
 	"github.com/continuouspipe/kube-status/datasnapshots"
 	"github.com/golang/glog"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/handlers"
 	"net/http"
 	"net/url"
 	"os"
@@ -56,7 +57,13 @@ func main() {
 	r.HandleFunc(api.ClusterFullStatusURLPath, api.NewClusterFullStatusH().Handle).Methods(http.MethodPost)
 	r.HandleFunc(api.ClusterHistoryURLPath, api.NewClusterHistoryH().Handle).Methods(http.MethodPost)
 	r.HandleFunc(api.ClusterListURLPath, api.NewClusterListHandler(clusterList).Handle).Methods(http.MethodGet)
-	http.ListenAndServe(listenURL.Host, r)
+
+	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With"})
+	originsOk := handlers.AllowedOrigins([]string{"*"})
+	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
+
+	handler := handlers.CORS(originsOk, headersOk, methodsOk)(r)
+	http.ListenAndServe(listenURL.Host, handler)
 	glog.Flush()
 }
 
