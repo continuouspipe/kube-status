@@ -3,7 +3,6 @@ package history
 import (
 	"cloud.google.com/go/datastore"
 	"google.golang.org/api/option"
-	"fmt"
 	"github.com/continuouspipe/kube-status/errors"
 	"golang.org/x/net/context"
 	"time"
@@ -31,7 +30,7 @@ type ClusterStatusHistoryEntry struct {
 type ClusterStatusHistory interface {
 	Save(clusterIdentifier string, time time.Time, response datasnapshots.ClusterFullStatusResponse) (uuid.UUID, error)
 	EntriesByCluster(clusterIdentifier string, left time.Time, right time.Time) ([]*ClusterStatusHistoryEntry, error)
-	Fetch(entry uuid.UUID) (ClusterStatusHistoryEntry, error)
+	Fetch(identifier uuid.UUID) (datasnapshots.ClusterFullStatusResponse, error)
 }
 
 //KubeStatusBucket allows to handle the kubernates status information stored on the google bucket
@@ -89,16 +88,33 @@ func (gds *GoogleCloudDatastoreStatusHistory) EntriesByCluster(clusterIdentifier
 		return entries, err
 	}
 
-	// Set the id field on each Task from the corresponding key.
-	//for i, key := range keys {
-	//	entries[i].UUID = uuid.FromString(key.Name)
-	//}
+	// Remove the content from the data
+	for i, _ := range entries {
+		entries[i].JsonEncodedStatus = []byte{}
+	}
 
 	return entries, nil
 }
 
-func (gds *GoogleCloudDatastoreStatusHistory) Fetch(entry uuid.UUID) (ClusterStatusHistoryEntry, error) {
-	return ClusterStatusHistoryEntry{}, fmt.Errorf("Blah")
+func (gds *GoogleCloudDatastoreStatusHistory) Fetch(identifier uuid.UUID) (datasnapshots.ClusterFullStatusResponse, error) {
+	client, err := gds.Client()
+	if err != nil {
+		return datasnapshots.ClusterFullStatusResponse{}, err
+	}
+
+	var entry ClusterStatusHistoryEntry
+	err = client.Get(gds.ClientContext(), &datastore.Key{Kind: "HistoryEntry", Name: identifier.String()}, &entry)
+	if err != nil {
+		return datasnapshots.ClusterFullStatusResponse{}, err
+	}
+
+	var snapshot datasnapshots.ClusterFullStatusResponse
+	err = json.Unmarshal(entry.JsonEncodedStatus, &snapshot)
+	if err != nil {
+		return datasnapshots.ClusterFullStatusResponse{}, err
+	}
+
+	return snapshot, nil
 }
 
 func (gds *GoogleCloudDatastoreStatusHistory) Client() (*datastore.Client, error) {

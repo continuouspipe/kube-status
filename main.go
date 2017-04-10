@@ -45,32 +45,34 @@ func main() {
 	}
 
 	snapshooter := datasnapshots.NewClusterSnapshot()
+	history := history.NewGoogleCloudDatastoreStatusHistory()
 
 	fmt.Printf("Run \"%s\"\n", command)
 	if "run" == command {
-		StartHistoryHandler(snapshooter, clusterList)
-		StartApi(snapshooter, clusterList)
+		StartHistoryHandler(snapshooter, clusterList, history)
+		StartApi(snapshooter, clusterList, history)
+	} else if "api" == command {
+		StartApi(snapshooter, clusterList, history)
 	} else if "snapshot" == command {
-		Snapshot(snapshooter, clusterList)
+		Snapshot(snapshooter, clusterList, history)
 	} else {
 		fmt.Printf("Command \"%s\"not found", command)
 		os.Exit(1)
 	}
 }
 
-func StartHistoryHandler(snapshooter datasnapshots.ClusterSnapshooter, clusterList clustersprovider.ClusterListProvider) {
-	storageHandler := NewHistoryHandler(snapshooter, clusterList)
+func StartHistoryHandler(snapshooter datasnapshots.ClusterSnapshooter, clusterList clustersprovider.ClusterListProvider, storage history.ClusterStatusHistory) {
+	storageHandler := NewHistoryHandler(snapshooter, clusterList, storage)
 
 	go storageHandler.Handle()
 }
 
-func Snapshot(snapshooter datasnapshots.ClusterSnapshooter, clusterList clustersprovider.ClusterListProvider) {
-	storageHandler := NewHistoryHandler(snapshooter, clusterList)
+func Snapshot(snapshooter datasnapshots.ClusterSnapshooter, clusterList clustersprovider.ClusterListProvider, storage history.ClusterStatusHistory) {
+	storageHandler := NewHistoryHandler(snapshooter, clusterList, storage)
 	storageHandler.Snapshot()
 }
 
-func NewHistoryHandler(snapshooter datasnapshots.ClusterSnapshooter, clusterList clustersprovider.ClusterListProvider) (history.DataSnapshotHandler) {
-	storage := history.NewGoogleCloudDatastoreStatusHistory()
+func NewHistoryHandler(snapshooter datasnapshots.ClusterSnapshooter, clusterList clustersprovider.ClusterListProvider, storage history.ClusterStatusHistory) (history.DataSnapshotHandler) {
 	handler := history.NewDataSnapshotHandler(
 		clusterList,
 		snapshooter,
@@ -80,7 +82,7 @@ func NewHistoryHandler(snapshooter datasnapshots.ClusterSnapshooter, clusterList
 	return *handler
 }
 
-func StartApi(snapshooter datasnapshots.ClusterSnapshooter, clusterList clustersprovider.ClusterListProvider) {
+func StartApi(snapshooter datasnapshots.ClusterSnapshooter, clusterList clustersprovider.ClusterListProvider, storage history.ClusterStatusHistory) {
 	glog.Infof("Starting kube status api listening at address %s", envListenAddress)
 	glog.Flush()
 
@@ -95,7 +97,8 @@ func StartApi(snapshooter datasnapshots.ClusterSnapshooter, clusterList clusters
 	r := mux.NewRouter()
 	r.HandleFunc("/", rootHandle)
 	r.HandleFunc(api.ClusterFullStatusURLPath, api.NewClusterFullStatusH(snapshooter).Handle).Methods(http.MethodPost)
-	r.HandleFunc(api.ClusterHistoryURLPath, api.NewClusterHistoryH().Handle).Methods(http.MethodPost)
+	r.HandleFunc(api.ClusterHistoryURLPath, api.NewClusterHistoryH(storage).HandleList).Methods(http.MethodGet)
+	r.HandleFunc(api.ClusterHistoryEntryURLPath, api.NewClusterHistoryH(storage).HandleEntry).Methods(http.MethodGet)
 	r.HandleFunc(api.ClusterListURLPath, api.NewClusterListHandler(clusterList).Handle).Methods(http.MethodGet)
 
 	headersOk := handlers.AllowedHeaders([]string{
