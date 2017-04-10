@@ -62,7 +62,7 @@ func (h DataSnapshotHandler) Snapshot() {
 	}()
 
 	wg.Wait()
-	fmt.Printf("Finished snapshots")
+	fmt.Printf("Finished snapshots\n")
 }
 
 func (h DataSnapshotHandler) SnapshotCluster(cluster clustersprovider.Cluster, time time.Time) uuid.UUID {

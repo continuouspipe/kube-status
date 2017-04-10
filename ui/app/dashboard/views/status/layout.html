@@ -6,7 +6,9 @@
     </div>
 </md-toolbar>
 <md-content flex id="content" class="card-grid" ui-view="status">
-    <md-progress-circular md-mode="indeterminate"></md-progress-circular>
+    <remote-resource resource-name="history">
+        <p class="help-text">Select a snapshot or click on the real-time icon.</p>
+    </remote-resource>
 </md-content>
 <md-content class="status-history" ng-if="history">
     <md-content class="md-toolbar-tools" ng-if="history === null">

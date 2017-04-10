@@ -61,8 +61,6 @@ func (h ClusterApiHandler) HandleStatus(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h ClusterApiHandler) ReturnClusterStatus(w http.ResponseWriter, cluster clustersprovider.Cluster) {
-	w.WriteHeader(http.StatusOK)
-
 	status, err := h.Snapshooter.FetchCluster(cluster)
 	if err != nil {
 		errors.LogAndRespondWithError(w, http.StatusBadRequest, "Unable to fetch cluster: %s", err.Error())
@@ -75,11 +73,25 @@ func (h ClusterApiHandler) ReturnClusterStatus(w http.ResponseWriter, cluster cl
 		return
 	}
 
+	w.WriteHeader(http.StatusOK)
 	w.Write(json)
 }
 
-func (h ClusterApiHandler) Handle(w http.ResponseWriter, r *http.Request) {
-	respBody, err := json.Marshal(h.Provider.Clusters())
+func (h ClusterApiHandler) HandleList(w http.ResponseWriter, r *http.Request) {
+	clusters := h.Provider.Clusters()
+	obfuscatedClusters := make([]clustersprovider.Cluster, len(clusters))
+
+	// Obfuscate the credentials
+	for k, cluster := range clusters {
+		obfuscatedClusters[k] = clustersprovider.Cluster{
+			Identifier: cluster.Identifier,
+			Address: cluster.Address,
+			Username: "OBFUSCATED",
+			Password: "OBFUSCATED",
+		}
+	}
+
+	respBody, err := json.Marshal(obfuscatedClusters)
 	if err != nil {
 		errors.LogAndRespondWithError(w, http.StatusBadRequest, "error when marshalling the response body json %s, details %s ", respBody, err.Error())
 		return

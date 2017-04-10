@@ -1,8 +1,8 @@
 angular.module('kubeStatus')
-    .controller('ClusterStatusLayoutController', function($scope, $state, StatusFetcher, HistoryChartFactory, cluster) {
+    .controller('ClusterStatusLayoutController', function($scope, $state, $remoteResource, StatusFetcher, HistoryChartFactory, cluster) {
         $scope.cluster = cluster;
 
-        StatusFetcher.historyEntriesByCluster(cluster).catch(function() {
+        $remoteResource.load('history', StatusFetcher.historyEntriesByCluster(cluster).catch(function() {
             return [];
         }).then(function(history) {
             if (history.length == 0) {
@@ -13,7 +13,7 @@ angular.module('kubeStatus')
             $scope.historyChartDefinition = HistoryChartFactory.fromHistory(history);
 
             return $state.go('cluster-status-view', {'status': history[history.length -1].UUID});
-        });
+        }));
 
         $scope.selectHandler = function(selectedItem) {
             var snapshot = $scope.history[selectedItem.row];

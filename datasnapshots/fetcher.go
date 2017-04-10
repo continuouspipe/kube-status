@@ -123,7 +123,7 @@ func (s *ClusterSnapshot) FetchCluster(requestedCluster clustersprovider.Cluster
 
 	nodes, err := clientset.Core().Nodes().List(kubernetesapi.ListOptions{})
 	if err != nil {
-		return nil, fmt.Errorf("error when creating the client api")
+		return nil, fmt.Errorf("error when creating the client api: %s", err.Error())
 	}
 
 	podLists, errList := getPodListByNode(clientset, nodes)

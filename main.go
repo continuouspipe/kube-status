@@ -102,7 +102,7 @@ func StartApi(snapshooter datasnapshots.ClusterSnapshooter, clusterList clusters
 	// Clusters
 	r.HandleFunc(api.BackwardCompatibleClusterFullStatusURLPath, clusterHandler.HandleBackwardCompatible).Methods(http.MethodPost)
 	r.HandleFunc(api.ClusterFullStatusURLPath, clusterHandler.HandleStatus).Methods(http.MethodGet)
-	r.HandleFunc(api.ClusterListURLPath, clusterHandler.Handle).Methods(http.MethodGet)
+	r.HandleFunc(api.ClusterListURLPath, clusterHandler.HandleList).Methods(http.MethodGet)
 
 	// History
 	r.HandleFunc(api.ClusterHistoryURLPath, api.NewClusterHistoryH(storage).HandleList).Methods(http.MethodGet)
