@@ -12,7 +12,7 @@ import (
 )
 
 //ClusterHistoryURLPath is the api endpoint for the retrieving the cluster status historic data
-const ClusterHistoryURLPath = "/clusters/{identifier}/history"
+const ClusterHistoryURLPath = "/clusters/{clusterIdentifier}/history"
 const ClusterHistoryEntryURLPath = "/clusters/{clusterIdentifier}/history/{entryUuid}"
 
 //ClusterHistoryH handles the ClusterHistoryURLPath api endpoint

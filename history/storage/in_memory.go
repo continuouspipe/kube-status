@@ -37,7 +37,7 @@ func (h InMemoryStatusHistory) Save(clusterIdentifier string, time time.Time, re
 		status: response,
 	}
 
-	h.Ring.Next()
+	h.Ring = h.Ring.Next()
 
 	return uuid, nil
 }
@@ -50,8 +50,6 @@ func (h InMemoryStatusHistory) EntriesByCluster(clusterIdentifier string, left t
 		if !ok {
 			return
 		}
-
-		fmt.Println(clusterStatusInRing)
 
 		if clusterStatusInRing.entry.ClusterIdentifier == clusterIdentifier && left.Before(clusterStatusInRing.entry.EntryTime) && right.After(clusterStatusInRing.entry.EntryTime) {
 			entries = append(entries, &clusterStatusInRing.entry)
