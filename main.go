@@ -20,6 +20,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"github.com/continuouspipe/kube-status/history"
 )
 
 var envListenAddress, _ = os.LookupEnv("KUBE_STATUS_LISTEN_ADDRESS") //e.g.: https://localhost:80
@@ -28,15 +29,12 @@ func main() {
 	listProviderType := flag.String("cluster-list", "in-memory", "the cluster list provider")
 	flag.Parse()
 
-	glog.Infof("starting kube status api listening at address %s", envListenAddress)
-	glog.Flush()
-
-	listenURL, err := url.Parse(envListenAddress)
-	if err != nil {
-		glog.V(5).Infof("cannot parse URL: %v\n", err.Error())
-		glog.Flush()
-		fmt.Printf("Cannot parse URL: %v\n", err.Error())
-		os.Exit(1)
+	arguments := flag.Args()
+	var command string
+	if len(arguments) == 0 {
+		command = "run"
+	} else {
+		command = arguments[0]
 	}
 
 	var clusterList clustersprovider.ClusterListProvider
@@ -47,11 +45,52 @@ func main() {
 	}
 
 	snapshooter := datasnapshots.NewClusterSnapshot()
-	snapshotHandler := datasnapshots.NewDataSnapshotHandler(
+
+	fmt.Printf("Run \"%s\"\n", command)
+	if "run" == command {
+		StartHistoryHandler(snapshooter, clusterList)
+		StartApi(snapshooter, clusterList)
+	} else if "snapshot" == command {
+		Snapshot(snapshooter, clusterList)
+	} else {
+		fmt.Printf("Command \"%s\"not found", command)
+		os.Exit(1)
+	}
+}
+
+func StartHistoryHandler(snapshooter datasnapshots.ClusterSnapshooter, clusterList clustersprovider.ClusterListProvider) {
+	storageHandler := NewHistoryHandler(snapshooter, clusterList)
+
+	go storageHandler.Handle()
+}
+
+func Snapshot(snapshooter datasnapshots.ClusterSnapshooter, clusterList clustersprovider.ClusterListProvider) {
+	storageHandler := NewHistoryHandler(snapshooter, clusterList)
+	storageHandler.Snapshot()
+}
+
+func NewHistoryHandler(snapshooter datasnapshots.ClusterSnapshooter, clusterList clustersprovider.ClusterListProvider) (history.DataSnapshotHandler) {
+	storage := history.NewGoogleCloudDatastoreStatusHistory()
+	handler := history.NewDataSnapshotHandler(
 		clusterList,
 		snapshooter,
+		storage,
 	)
-	go snapshotHandler.Handle()
+
+	return *handler
+}
+
+func StartApi(snapshooter datasnapshots.ClusterSnapshooter, clusterList clustersprovider.ClusterListProvider) {
+	glog.Infof("Starting kube status api listening at address %s", envListenAddress)
+	glog.Flush()
+
+	listenURL, err := url.Parse(envListenAddress)
+	if err != nil {
+		glog.V(5).Infof("cannot parse URL: %v\n", err.Error())
+		glog.Flush()
+		fmt.Printf("Cannot parse URL: %v\n", err.Error())
+		os.Exit(1)
+	}
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", rootHandle)

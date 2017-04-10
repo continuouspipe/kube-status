@@ -2,7 +2,6 @@
 package datasnapshots
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/continuouspipe/kube-status/clustersprovider"
 	"github.com/continuouspipe/kube-status/errors"
@@ -81,50 +80,14 @@ type ClusterFullStatusContainer struct {
 
 //ClusterSnapshooter takes the full status of one or more clusters and returns it as a json formatted string
 type ClusterSnapshooter interface {
-	Add(cluster clustersprovider.Cluster)
-	Fetch() ([]byte, errors.ErrorListProvider)
 	FetchCluster(requestedCluster clustersprovider.Cluster) (*ClusterFullStatusResponse, error)
 }
 
-//ClusterSnapshot takes the full status of one or more clusters and returns it as a json formatted string
-type ClusterSnapshot struct {
-	clusters        []clustersprovider.Cluster
-	clusterStatuses []ClusterFullStatusResponse
-}
+type ClusterSnapshot struct {}
 
 //NewClusterSnapshot is the ctor for ClusterSnapshot
 func NewClusterSnapshot() *ClusterSnapshot {
 	return &ClusterSnapshot{}
-}
-
-//Add appends a new clustersprovider.Cluster struct to the stored list
-func (s *ClusterSnapshot) Add(cluster clustersprovider.Cluster) {
-	s.clusters = append(s.clusters, cluster)
-}
-
-//Fetch retrieves the cluster statuses for all the clusters
-func (s *ClusterSnapshot) Fetch() ([]byte, errors.ErrorListProvider) {
-	el := errors.NewErrorList()
-
-	for _, requestedCluster := range s.clusters {
-
-		fullStatus, err := s.FetchCluster(requestedCluster)
-		if err != nil {
-			el.Add(err)
-			continue
-		}
-
-		//Build the full status response
-		s.clusterStatuses = append(s.clusterStatuses, *fullStatus)
-	}
-	statuses, err := json.Marshal(s.clusterStatuses)
-	if err != nil {
-		el.AddErrorf("error when marshalling %#v", s.clusterStatuses)
-		el.Add(err)
-		return []byte{}, el
-	}
-
-	return statuses, nil
 }
 
 func (s *ClusterSnapshot) FetchCluster(requestedCluster clustersprovider.Cluster) (*ClusterFullStatusResponse, error) {
