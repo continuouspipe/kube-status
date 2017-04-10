@@ -93,10 +93,11 @@ func NewClusterSnapshot() *ClusterSnapshot {
 func (s *ClusterSnapshot) FetchCluster(requestedCluster clustersprovider.Cluster) (*ClusterFullStatusResponse, error) {
 	ctx := clientcmdapi.NewContext()
 	cfg := clientcmdapi.NewConfig()
-	authInfo := clientcmdapi.NewAuthInfo()
 
+	authInfo := clientcmdapi.NewAuthInfo()
 	authInfo.Username = requestedCluster.Username
 	authInfo.Password = requestedCluster.Password
+	authInfo.Token = requestedCluster.Token
 
 	cluster := clientcmdapi.NewCluster()
 	cluster.Server = requestedCluster.Address

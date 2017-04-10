@@ -1,0 +1,46 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    component-identifier: kube-status
+  name: kube-status
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component-identifier: kube-status
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        component-identifier: kube-status
+      name: kube-status
+    spec:
+      containers:
+      - command:
+        - /app/run.sh
+        - -cluster-provider=within-k8s
+        env:
+        - name: KUBE_STATUS_LISTEN_ADDRESS
+          value: http://0.0.0.0:80
+        image: quay.io/continuouspipe/kube-status:master
+        name: kube-status
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /
+        resources:
+          limits:
+            cpu: 500m
+            memory: 500Mi
+          requests:
+            cpu: 10m
+            memory: 100Mi

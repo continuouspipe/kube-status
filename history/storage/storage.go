@@ -9,7 +9,6 @@ import (
 type ClusterStatusHistoryEntry struct {
 	UUID 			  string
 	ClusterIdentifier string
-	JsonEncodedStatus []byte `datastore:",noindex"`
 	EntryTime 		  time.Time
 }
 

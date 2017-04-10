@@ -16,6 +16,13 @@ var UuidNamespace, _ = uuid.FromString("0bcaf5df-8117-440c-96f2-2f5499054299")
 
 type GoogleCloudDatastoreStatusHistory struct{}
 
+type ClusterStatusHistoryEntryInGoogleCloudDataStore struct {
+	UUID 			  string
+	ClusterIdentifier string
+	JsonEncodedStatus []byte `datastore:",noindex"`
+	EntryTime 		  time.Time
+}
+
 func NewGoogleCloudDatastoreStatusHistory() *GoogleCloudDatastoreStatusHistory {
 	return &GoogleCloudDatastoreStatusHistory{}
 }
@@ -32,11 +39,11 @@ func (gds *GoogleCloudDatastoreStatusHistory) Save(clusterIdentifier string, tim
 	}
 
 	entryUuid := uuid.NewV5(UuidNamespace, clusterIdentifier+time.String())
-	entry := &ClusterStatusHistoryEntry{
+	entry := &ClusterStatusHistoryEntryInGoogleCloudDataStore{
 		UUID: entryUuid.String(),
 		ClusterIdentifier: clusterIdentifier,
-		JsonEncodedStatus: jsonBytes,
 		EntryTime: time,
+		JsonEncodedStatus: jsonBytes,
 	}
 
 	key := &datastore.Key{
@@ -54,22 +61,27 @@ func (gds *GoogleCloudDatastoreStatusHistory) Save(clusterIdentifier string, tim
 
 func (gds *GoogleCloudDatastoreStatusHistory) EntriesByCluster(clusterIdentifier string, left time.Time, right time.Time) ([]*ClusterStatusHistoryEntry, error) {
 	client, err := gds.Client()
-	var entries []*ClusterStatusHistoryEntry
 
 	if err != nil {
-		return entries, err
+		return []*ClusterStatusHistoryEntry{}, err
 	}
 
 	// Create a query to fetch all Task entities, ordered by "created".
+	var entriesInDatastore []*ClusterStatusHistoryEntryInGoogleCloudDataStore
 	query := datastore.NewQuery("HistoryEntry").Order("EntryTime").Filter("EntryTime > ", left).Filter("EntryTime < ", right)
-	_, err = client.GetAll(gds.ClientContext(), query, &entries)
+	_, err = client.GetAll(gds.ClientContext(), query, &entriesInDatastore)
 	if err != nil {
-		return entries, err
+		return []*ClusterStatusHistoryEntry{}, err
 	}
 
 	// Remove the content from the data
-	for i, _ := range entries {
-		entries[i].JsonEncodedStatus = []byte{}
+	entries := make([]*ClusterStatusHistoryEntry, len(entriesInDatastore))
+	for i, entryInDatastore := range entriesInDatastore {
+		entries[i] = &ClusterStatusHistoryEntry{
+			UUID: entryInDatastore.UUID,
+			ClusterIdentifier: entryInDatastore.ClusterIdentifier,
+			EntryTime: entryInDatastore.EntryTime,
+		}
 	}
 
 	return entries, nil
@@ -81,7 +93,7 @@ func (gds *GoogleCloudDatastoreStatusHistory) Fetch(identifier uuid.UUID) (datas
 		return datasnapshots.ClusterFullStatusResponse{}, err
 	}
 
-	var entry ClusterStatusHistoryEntry
+	var entry ClusterStatusHistoryEntryInGoogleCloudDataStore
 	err = client.Get(gds.ClientContext(), &datastore.Key{Kind: "HistoryEntry", Name: identifier.String()}, &entry)
 	if err != nil {
 		return datasnapshots.ClusterFullStatusResponse{}, err
