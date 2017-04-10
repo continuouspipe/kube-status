@@ -120,9 +120,20 @@ import:
   - plugin/pkg/client/auth/oidc
   - third_party/forked/golang/reflect
 - package: cloud.google.com/go
-  version: 3b1ae45394a234c385be014e9a488f2bb6eef821
+  version: d34ae6f898bfb6962913d1092f2283bbe228c42f
 - package: golang.org/x/net
   subpackages:
   - context
 - package: github.com/gorilla/handlers
   version: ^1.2.0
+- package: github.com/satori/go.uuid
+  version: ^1.1.0
+- package: github.com/Sirupsen/logrus
+- package: google.golang.org/genproto
+  subpackages:
+  - googleapis/datastore/v1
+  - googleapis/api/annotations
+- package: github.com/golang/protobuf
+  version: 24f28ae800abfde9310e779f94be606b1a98a3fc
+- package: google.golang.org/grpc
+  version: ^1.2.1

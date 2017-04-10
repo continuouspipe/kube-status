@@ -27,17 +27,31 @@ import (
 type Value interface{}
 
 // ValueLoader stores a slice of Values representing a result row from a Read operation.
-// See Iterator.Get for more information.
+// See RowIterator.Next for more information.
 type ValueLoader interface {
-	Load(v []Value) error
+	Load(v []Value, s Schema) error
 }
 
 // ValueList converts a []Value to implement ValueLoader.
 type ValueList []Value
 
 // Load stores a sequence of values in a ValueList.
-func (vs *ValueList) Load(v []Value) error {
+func (vs *ValueList) Load(v []Value, _ Schema) error {
 	*vs = append(*vs, v...)
+	return nil
+}
+
+// valueMap converts a map[string]Value to implement ValueLoader.
+type valueMap map[string]Value
+
+// Load stores a sequence of values in a valueMap.
+func (vm *valueMap) Load(v []Value, s Schema) error {
+	if *vm == nil {
+		*vm = map[string]Value{}
+	}
+	for i, f := range s {
+		(*vm)[f.Name] = v[i]
+	}
 	return nil
 }
 
