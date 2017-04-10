@@ -18,13 +18,23 @@ angular.module('kubeStatus')
                 parent: 'layout',
                 views: {
                     'content@': {
-                        templateUrl: 'dashboard/views/clusters/status.html',
-                        controller: 'ClusterStatusController'
+                        templateUrl: 'dashboard/views/status/layout.html',
+                        controller: 'ClusterStatusLayoutController'
                     }
                 },
                 resolve: {
                     cluster: function(ClusterRepository, $stateParams) {
                         return ClusterRepository.find($stateParams.clusterIdentifier);
+                    }
+                }
+            })
+            .state('cluster-status-view', {
+                url: '/cluster/:clusterIdentifier/status/{status}',
+                parent: 'cluster-status',
+                views: {
+                    'status': {
+                        templateUrl: 'dashboard/views/status/full.html',
+                        controller: 'ClusterStatusController'
                     }
                 }
             })

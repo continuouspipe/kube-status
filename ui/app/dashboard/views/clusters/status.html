@@ -106,3 +106,12 @@
         </md-tabs>
     </remote-resource>
 </md-content>
+<md-content class="status-history">
+    <md-content class="md-toolbar-tools" ng-if="history === undefined">
+        <md-progress-circular md-mode="indeterminate"></md-progress-circular>
+    </md-content>
+    <md-content class="md-toolbar-tools" ng-if="history === null">
+        <h4>History is not available.</h4>
+    </md-content>
+    <div google-chart chart="historyChartDefinition" ng-if="history" agc-on-select="selectHandler(selectedItem)" style="height: 100px"></div>
+</md-content>

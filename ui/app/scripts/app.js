@@ -10,7 +10,8 @@ angular
         'ngResource',
         'ui.router',
         'ngMaterial',
-        'yaru22.angular-timeago'
+        'yaru22.angular-timeago',
+        'googlechart'
     ])
     .config(function ($urlRouterProvider, $locationProvider, $mdThemingProvider) {
         $urlRouterProvider.otherwise('/');

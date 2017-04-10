@@ -1,8 +1,35 @@
 angular.module('kubeStatus')
-    .controller('ClusterStatusController', function($scope, $remoteResource, $mdColors, $mdDialog, StatusFetcher, cluster) {
+    .controller('ClusterStatusLayoutController', function($scope, $state, StatusFetcher, HistoryChartFactory, cluster) {
         $scope.cluster = cluster;
 
-        $remoteResource.load('status', StatusFetcher.findByCluster(cluster)).then(function (status) {
+        StatusFetcher.historyEntriesByCluster(cluster).catch(function() {
+            return [];
+        }).then(function(history) {
+            if (history.length == 0) {
+                return $state.go('cluster-status-view', {'status': 'live'});
+            }
+
+            $scope.history = history;
+            $scope.historyChartDefinition = HistoryChartFactory.fromHistory(history);
+
+            return $state.go('cluster-status-view', {'status': history[history.length -1].UUID});
+        });
+
+        $scope.selectHandler = function(selectedItem) {
+            var snapshot = $scope.history[selectedItem.row];
+
+            return $state.go('cluster-status-view', {'status': snapshot.UUID});
+        };
+    })
+    .controller('ClusterStatusController', function($scope, $remoteResource, $mdColors, $mdDialog, $stateParams, StatusFetcher, cluster) {
+        var statusFetcher;
+        if ($stateParams.status == 'live') {
+            statusFetcher = StatusFetcher.findByCluster(cluster);
+        } else {
+            statusFetcher = StatusFetcher.findBySnaphost(cluster, $stateParams.status);
+        }
+
+        $remoteResource.load('status', statusFetcher).then(function (status) {
             $scope.status = status;
 
             $scope.podsByNode = {};
@@ -93,5 +120,42 @@ angular.module('kubeStatus')
             else if (percents > 40) { return 'blue'; }
             return 'blue';
         }
+    })
+    .service('HistoryChartFactory', function() {
+        this.fromHistory = function(history) {
+            return {
+                "data": {
+                    "cols": [
+                        { type: 'string', id: 'Snapshot' },
+                        { type: 'date', id: 'Start' },
+                        { type: 'date', id: 'End' }
+                    ], 
+                    "rows": history.map(function(snapshot) {
+                        var time = Date.parse(snapshot.EntryTime),
+                            left = new Date(time),
+                            right = new Date(time + 1 * 60000);
+
+                        return {
+                            c: [
+                                {v: 'Snapshots'},
+                                {v: left},
+                                {v: right},
+                            ]
+                        }
+                    })
+                },
+                "type": "Timeline",
+                "displayed": false,
+                "options": {
+                    timeline: { 
+                        colorByRowLabel: true
+                    },
+                    height: 100,
+                    'tooltip' : {
+                      trigger: 'none'
+                    }
+                }
+            };
+        };
     })
 ;
