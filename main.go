@@ -97,7 +97,6 @@ func StartApi(snapshooter datasnapshots.ClusterSnapshooter, clusterList clusters
 	clusterHandler := api.NewClusterApiHandler(snapshooter, clusterList)
 
 	r := mux.NewRouter()
-	r.HandleFunc("/", rootHandle)
 
 	// Clusters
 	r.HandleFunc(api.BackwardCompatibleClusterFullStatusURLPath, clusterHandler.HandleBackwardCompatible).Methods(http.MethodPost)
@@ -107,6 +106,9 @@ func StartApi(snapshooter datasnapshots.ClusterSnapshooter, clusterList clusters
 	// History
 	r.HandleFunc(api.ClusterHistoryURLPath, api.NewClusterHistoryH(storage).HandleList).Methods(http.MethodGet)
 	r.HandleFunc(api.ClusterHistoryEntryURLPath, api.NewClusterHistoryH(storage).HandleEntry).Methods(http.MethodGet)
+
+	// Static assets
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./var/static/")))
 
 	headersOk := handlers.AllowedHeaders([]string{
 		"Accept",
@@ -122,8 +124,4 @@ func StartApi(snapshooter datasnapshots.ClusterSnapshooter, clusterList clusters
 	handler := handlers.CORS(originsOk, headersOk, methodsOk)(r)
 	http.ListenAndServe(listenURL.Host, handler)
 	glog.Flush()
-}
-
-func rootHandle(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
 }
