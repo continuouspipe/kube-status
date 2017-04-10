@@ -12,4 +12,5 @@ type Cluster struct {
 //ClusterListProvider returns a list of clusters
 type ClusterListProvider interface {
 	Clusters() []Cluster
+	ByIdentifier(identifier string) (Cluster, error)
 }

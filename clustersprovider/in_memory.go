@@ -3,6 +3,7 @@ package clustersprovider
 import (
 	"os"
 	"encoding/json"
+	"fmt"
 )
 
 type InMemoryClusterList struct{
@@ -20,6 +21,16 @@ func NewInMemoryClusterList() *InMemoryClusterList {
 	return &InMemoryClusterList{
 		ClusterList: clusters,
 	}
+}
+
+func (c InMemoryClusterList) ByIdentifier(identifier string) (Cluster, error) {
+	for _, cluster := range c.Clusters() {
+		if cluster.Identifier == identifier {
+			return cluster, nil
+		}
+	}
+
+	return Cluster{}, fmt.Errorf("Cluster not found")
 }
 
 func (c InMemoryClusterList) Clusters() []Cluster {

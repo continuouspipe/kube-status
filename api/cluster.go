@@ -8,27 +8,30 @@ import (
 	"encoding/json"
 	"github.com/continuouspipe/kube-status/datasnapshots"
 	"io/ioutil"
+	"github.com/gorilla/mux"
 )
 
 //ClusterFullStatusURLPath is the api endpoint for the retrieving the cluster status historic data
-const ClusterFullStatusURLPath = "/cluster/status/full"
+const BackwardCompatibleClusterFullStatusURLPath = "/cluster/status/full"
 const ClusterListURLPath = "/clusters"
+const ClusterFullStatusURLPath = "/clusters/{clusterIdentifier}/status"
 
 //ClusterFullStatusH handles the ClusterFullStatusURLPath api endpoint
-type ClusterFullStatusH struct{
+type ClusterApiHandler struct{
 	Snapshooter datasnapshots.ClusterSnapshooter
+	Provider clustersprovider.ClusterListProvider
 }
 
 //NewClusterFullStatusH is the ctor for ClusterFullStatusH
-func NewClusterFullStatusH(snapshooter datasnapshots.ClusterSnapshooter) *ClusterFullStatusH {
-	return &ClusterFullStatusH{
+func NewClusterApiHandler(snapshooter datasnapshots.ClusterSnapshooter, clusterListProvider clustersprovider.ClusterListProvider) *ClusterApiHandler {
+	return &ClusterApiHandler{
 		Snapshooter: snapshooter,
+		Provider: clusterListProvider,
 	}
 }
 
 //Handle is the handler for the ClusterFullStatusURLPath api endpoint
-//TODO: takes a uuid from the url query and write in the response the data stored on the google cloud bucket
-func (h ClusterFullStatusH) Handle(w http.ResponseWriter, r *http.Request) {
+func (h ClusterApiHandler) HandleBackwardCompatible(w http.ResponseWriter, r *http.Request) {
 	resBodyData, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		errors.LogAndRespondWithError(w, http.StatusBadRequest, "error when reading the request body %s, details %s ", r.Body, err.Error())
@@ -42,35 +45,40 @@ func (h ClusterFullStatusH) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.ReturnClusterStatus(w, requestedCluster)
+}
 
+func (h ClusterApiHandler) HandleStatus(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	cluster, err := h.Provider.ByIdentifier(vars["clusterIdentifier"])
+	if err != nil {
+		errors.LogAndRespondWithError(w, http.StatusBadRequest, "%s", err.Error())
+		return
+	}
+
+	h.ReturnClusterStatus(w, cluster)
+}
+
+func (h ClusterApiHandler) ReturnClusterStatus(w http.ResponseWriter, cluster clustersprovider.Cluster) {
 	w.WriteHeader(http.StatusOK)
 
-	status, err := h.Snapshooter.FetchCluster(requestedCluster)
+	status, err := h.Snapshooter.FetchCluster(cluster)
 	if err != nil {
-		errors.LogAndRespondWithError(w, http.StatusBadRequest, "error when unmarshalling the request body json %s, details %s ", r.Body, err.Error())
+		errors.LogAndRespondWithError(w, http.StatusBadRequest, "Unable to fetch cluster: %s", err.Error())
 		return
 	}
 
 	json, err := json.Marshal(*status)
 	if err != nil {
-		errors.LogAndRespondWithError(w, http.StatusBadRequest, "error when unmarshalling the request body json %s, details %s ", r.Body, err.Error())
+		errors.LogAndRespondWithError(w, http.StatusBadRequest, "Error while marshalling status: %s", err.Error())
 		return
 	}
 
 	w.Write(json)
 }
 
-type ClusterListHandler struct{
-	Provider clustersprovider.ClusterListProvider
-}
-
-func NewClusterListHandler(clusterListProvider clustersprovider.ClusterListProvider) *ClusterListHandler {
-	return &ClusterListHandler{
-		Provider: clusterListProvider,
-	}
-}
-
-func (h ClusterListHandler) Handle(w http.ResponseWriter, r *http.Request) {
+func (h ClusterApiHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	respBody, err := json.Marshal(h.Provider.Clusters())
 	if err != nil {
 		errors.LogAndRespondWithError(w, http.StatusBadRequest, "error when marshalling the response body json %s, details %s ", respBody, err.Error())

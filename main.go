@@ -94,12 +94,19 @@ func StartApi(snapshooter datasnapshots.ClusterSnapshooter, clusterList clusters
 		os.Exit(1)
 	}
 
+	clusterHandler := api.NewClusterApiHandler(snapshooter, clusterList)
+
 	r := mux.NewRouter()
 	r.HandleFunc("/", rootHandle)
-	r.HandleFunc(api.ClusterFullStatusURLPath, api.NewClusterFullStatusH(snapshooter).Handle).Methods(http.MethodPost)
+
+	// Clusters
+	r.HandleFunc(api.BackwardCompatibleClusterFullStatusURLPath, clusterHandler.HandleBackwardCompatible).Methods(http.MethodPost)
+	r.HandleFunc(api.ClusterFullStatusURLPath, clusterHandler.HandleStatus).Methods(http.MethodGet)
+	r.HandleFunc(api.ClusterListURLPath, clusterHandler.Handle).Methods(http.MethodGet)
+
+	// History
 	r.HandleFunc(api.ClusterHistoryURLPath, api.NewClusterHistoryH(storage).HandleList).Methods(http.MethodGet)
 	r.HandleFunc(api.ClusterHistoryEntryURLPath, api.NewClusterHistoryH(storage).HandleEntry).Methods(http.MethodGet)
-	r.HandleFunc(api.ClusterListURLPath, api.NewClusterListHandler(clusterList).Handle).Methods(http.MethodGet)
 
 	headersOk := handlers.AllowedHeaders([]string{
 		"Accept",
