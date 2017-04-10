@@ -6,13 +6,13 @@ import (
 	"github.com/continuouspipe/kube-status/errors"
 	"golang.org/x/net/context"
 	"time"
+	"os"
 	"github.com/continuouspipe/kube-status/datasnapshots"
 	"github.com/satori/go.uuid"
 	"k8s.io/kubernetes/pkg/util/json"
 )
 
-//var clusterProjectId, _ = os.LookupEnv("continuous-pipe-1042")
-var clusterProjectId = "continuous-pipe-1042"
+var googleCloudProjectId, _ = os.LookupEnv("GOOGLE_CLOUD_PROJECT_ID")
 var UuidNamespace, _ = uuid.FromString("0bcaf5df-8117-440c-96f2-2f5499054299")
 
 //BucketObjectWriter writes []bytes, if an error occurs it returns a list of errors
@@ -118,7 +118,7 @@ func (gds *GoogleCloudDatastoreStatusHistory) Fetch(identifier uuid.UUID) (datas
 }
 
 func (gds *GoogleCloudDatastoreStatusHistory) Client() (*datastore.Client, error) {
-	return datastore.NewClient(gds.ClientContext(), clusterProjectId, option.WithServiceAccountFile("var/service-account.json"))
+	return datastore.NewClient(gds.ClientContext(), googleCloudProjectId, option.WithServiceAccountFile("var/service-account.json"))
 }
 
 func (gds *GoogleCloudDatastoreStatusHistory) ClientContext() (context.Context) {
