@@ -1,9 +1,8 @@
-package history
+package storage
 
 import (
 	"cloud.google.com/go/datastore"
 	"google.golang.org/api/option"
-	"github.com/continuouspipe/kube-status/errors"
 	"golang.org/x/net/context"
 	"time"
 	"os"
@@ -15,28 +14,8 @@ import (
 var googleCloudProjectId, _ = os.LookupEnv("GOOGLE_CLOUD_PROJECT_ID")
 var UuidNamespace, _ = uuid.FromString("0bcaf5df-8117-440c-96f2-2f5499054299")
 
-//BucketObjectWriter writes []bytes, if an error occurs it returns a list of errors
-type BucketObjectWriter interface {
-	Write([]byte) errors.ErrorListProvider
-}
-
-type ClusterStatusHistoryEntry struct {
-	UUID 			  string
-	ClusterIdentifier string
-	JsonEncodedStatus []byte `datastore:",noindex"`
-	EntryTime 		  time.Time
-}
-
-type ClusterStatusHistory interface {
-	Save(clusterIdentifier string, time time.Time, response datasnapshots.ClusterFullStatusResponse) (uuid.UUID, error)
-	EntriesByCluster(clusterIdentifier string, left time.Time, right time.Time) ([]*ClusterStatusHistoryEntry, error)
-	Fetch(identifier uuid.UUID) (datasnapshots.ClusterFullStatusResponse, error)
-}
-
-//KubeStatusBucket allows to handle the kubernates status information stored on the google bucket
 type GoogleCloudDatastoreStatusHistory struct{}
 
-//NewKubeStatusBucket ctor for KubeStatusBucket
 func NewGoogleCloudDatastoreStatusHistory() *GoogleCloudDatastoreStatusHistory {
 	return &GoogleCloudDatastoreStatusHistory{}
 }

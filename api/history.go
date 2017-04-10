@@ -4,11 +4,11 @@ package api
 import (
 	"net/http"
 	"github.com/gorilla/mux"
-	"github.com/continuouspipe/kube-status/history"
 	"time"
 	"github.com/continuouspipe/kube-status/errors"
 	"encoding/json"
 	"github.com/satori/go.uuid"
+	"github.com/continuouspipe/kube-status/history/storage"
 )
 
 //ClusterHistoryURLPath is the api endpoint for the retrieving the cluster status historic data
@@ -17,11 +17,11 @@ const ClusterHistoryEntryURLPath = "/clusters/{clusterIdentifier}/history/{entry
 
 //ClusterHistoryH handles the ClusterHistoryURLPath api endpoint
 type ClusterHistoryH struct{
-	ClusterStatusHistory history.ClusterStatusHistory
+	ClusterStatusHistory storage.ClusterStatusHistory
 }
 
 //NewClusterHistoryH returns an instance of ClusterHistoryH
-func NewClusterHistoryH(history history.ClusterStatusHistory) *ClusterHistoryH {
+func NewClusterHistoryH(history storage.ClusterStatusHistory) *ClusterHistoryH {
 	return &ClusterHistoryH{
 		ClusterStatusHistory: history,
 	}

@@ -21,6 +21,7 @@ import (
 	"net/url"
 	"os"
 	"github.com/continuouspipe/kube-status/history"
+	"github.com/continuouspipe/kube-status/history/storage"
 )
 
 var envListenAddress, _ = os.LookupEnv("KUBE_STATUS_LISTEN_ADDRESS") //e.g.: https://localhost:80
@@ -45,7 +46,7 @@ func main() {
 	}
 
 	snapshooter := datasnapshots.NewClusterSnapshot()
-	history := history.NewGoogleCloudDatastoreStatusHistory()
+	history := storage.NewGoogleCloudDatastoreStatusHistory()
 
 	fmt.Printf("Run \"%s\"\n", command)
 	if "run" == command {
@@ -61,18 +62,18 @@ func main() {
 	}
 }
 
-func StartHistoryHandler(snapshooter datasnapshots.ClusterSnapshooter, clusterList clustersprovider.ClusterListProvider, storage history.ClusterStatusHistory) {
+func StartHistoryHandler(snapshooter datasnapshots.ClusterSnapshooter, clusterList clustersprovider.ClusterListProvider, storage storage.ClusterStatusHistory) {
 	storageHandler := NewHistoryHandler(snapshooter, clusterList, storage)
 
 	go storageHandler.Handle()
 }
 
-func Snapshot(snapshooter datasnapshots.ClusterSnapshooter, clusterList clustersprovider.ClusterListProvider, storage history.ClusterStatusHistory) {
+func Snapshot(snapshooter datasnapshots.ClusterSnapshooter, clusterList clustersprovider.ClusterListProvider, storage storage.ClusterStatusHistory) {
 	storageHandler := NewHistoryHandler(snapshooter, clusterList, storage)
 	storageHandler.Snapshot()
 }
 
-func NewHistoryHandler(snapshooter datasnapshots.ClusterSnapshooter, clusterList clustersprovider.ClusterListProvider, storage history.ClusterStatusHistory) (history.DataSnapshotHandler) {
+func NewHistoryHandler(snapshooter datasnapshots.ClusterSnapshooter, clusterList clustersprovider.ClusterListProvider, storage storage.ClusterStatusHistory) (history.DataSnapshotHandler) {
 	handler := history.NewDataSnapshotHandler(
 		clusterList,
 		snapshooter,
@@ -82,7 +83,7 @@ func NewHistoryHandler(snapshooter datasnapshots.ClusterSnapshooter, clusterList
 	return *handler
 }
 
-func StartApi(snapshooter datasnapshots.ClusterSnapshooter, clusterList clustersprovider.ClusterListProvider, storage history.ClusterStatusHistory) {
+func StartApi(snapshooter datasnapshots.ClusterSnapshooter, clusterList clustersprovider.ClusterListProvider, storage storage.ClusterStatusHistory) {
 	glog.Infof("Starting kube status api listening at address %s", envListenAddress)
 	glog.Flush()
 

@@ -3,6 +3,7 @@ package history
 import (
 	"github.com/continuouspipe/kube-status/clustersprovider"
 	"github.com/continuouspipe/kube-status/datasnapshots"
+	"github.com/continuouspipe/kube-status/history/storage"
 	"github.com/satori/go.uuid"
 	"time"
 	"fmt"
@@ -13,11 +14,11 @@ import (
 type DataSnapshotHandler struct {
 	clusterListProvider clustersprovider.ClusterListProvider
 	clusterSnapshooter  datasnapshots.ClusterSnapshooter
-	storage				ClusterStatusHistory
+	storage				storage.ClusterStatusHistory
 }
 
 //NewDataSnapshotHandler ctor for DataSnapshotHandler
-func NewDataSnapshotHandler(clp clustersprovider.ClusterListProvider, cs datasnapshots.ClusterSnapshooter, storage ClusterStatusHistory) *DataSnapshotHandler {
+func NewDataSnapshotHandler(clp clustersprovider.ClusterListProvider, cs datasnapshots.ClusterSnapshooter, storage storage.ClusterStatusHistory) *DataSnapshotHandler {
 	return &DataSnapshotHandler{
 		clusterListProvider: clp,
 		clusterSnapshooter: cs,
