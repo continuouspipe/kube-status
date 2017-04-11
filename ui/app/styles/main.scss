@@ -1,0 +1,141 @@
+@import "vars";
+@import "mixins";
+@import "tables";
+
+.mobile-only {
+    @include largeScreen {
+        display: none;
+    }
+}
+
+.help-text {
+    text-align: center;
+    margin-top: 40px;
+}
+
+.remote-resource.loading {
+    margin-top: 50px;
+}
+
+.status-pods {
+    .pod-namespace {
+        border: 1px dotted #999;
+        float: left;
+        padding: 5px;
+
+        .namespace-name {
+            display: none;
+        }
+
+        .pod {
+            display: inline-block;
+            background: #ccc;
+            width: 20px;
+            height: 20px;
+            margin-right: 1px;
+        }
+    }
+
+    &.display-namespace-name .pod-namespace .namespace-name {
+        display: block;
+    }
+}
+
+.status-nodes {
+    .node {
+        display: flex;
+        width: 200px;
+        flex-direction: column;
+        float: left;
+        margin-right: 15px;
+        margin-bottom: 15px;
+
+        md-card-title {
+            padding: 5px 10px;
+            margin-bottom: 10px;
+
+            md-card-title-text {
+                width: 100%;
+
+                span.md-headline {
+                    font-size: 14px;
+                    font-weight: bold;
+                    padding-bottom: 0;
+                }
+                span.md-subhead {
+                    padding-top: 0;
+                }
+            }
+        }
+
+        .node-name {
+            white-space: nowrap;
+            overflow: hidden;              /* "overflow" value must be different from "visible" */
+            text-overflow:    ellipsis;
+            direction:rtl;
+            text-align:left;
+            padding-bottom: 10px;
+        }
+        .resources-overview {
+            height: 200px;
+            display: flex;
+
+            .resource {
+                display: flex;
+                flex-direction: column;
+                flex: 1;
+
+                .resource-title {
+                    text-align: center;
+                    font-weight: bold;
+                }
+                .resource-container {
+                    border: 1px solid #ccc;
+                    flex: 1;
+                    position: relative;
+
+                    .resource-usage {
+                        position: absolute;
+                        bottom: 0;
+                        right: 0;
+                        left: 0;
+                        background: grey;
+                        z-index: 1;
+                    }
+                    .resource-value {
+                        text-align: center;
+                        z-index: 2;
+                        position: absolute;
+                        left: 0;
+                        right: 0;
+                        top: 0;
+                    }
+                }
+            }
+        }
+        .node-status {
+            text-align: center;
+        }
+    }
+}
+
+.status-history {
+    display: flex; 
+    flex-direction: row;
+    margin-top: 5px;
+    padding-top: 5px;
+    padding-right: 5px;
+    background: white;
+    border-top: 1px solid #ccc;
+
+    .history-chart {
+        flex: 1; 
+        height: 80px;
+    }
+
+    .live-button.active {
+        md-icon {
+            color: #0688ff;
+        }
+    }
+}

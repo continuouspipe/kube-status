@@ -1,0 +1,93 @@
+<remote-resource resource-name="status">
+    <md-tabs md-dynamic-height md-border-bottom>
+        <md-tab label="Nodes">
+            <md-content class="md-padding status-nodes">
+                <md-card ng-repeat="node in status.nodes" class="node">
+                    <md-card-title ng-style="{'background-color': colour_from_node_status(node.status)}">
+                        <md-card-title-text>
+                            <span class="md-headline node-name">{{ node.name }}</span>
+                            <span class="md-subhead">{{ node.status }}</span>
+                        </md-card-title-text>
+                    </md-card-title>
+                    <md-card-content>
+                        <div class="resources-overview">
+                            <div class="resource">
+                                <div class="resource-title">CPU</div>
+                                <div class="resource-container">
+                                    <div class="resource-value">{{ node.resources.percentOfAvailable.cpu.requests }} %</div>
+                                    <div class="resource-usage" ng-style="{
+                                        'height': node.resources.percentOfAvailable.cpu.requests+'%',
+                                        'background-color': colour_from_percents(node.resources.percentOfAvailable.cpu.requests)
+                                    }"></div>
+                                </div>
+                            </div>
+                            <div class="resource">
+                                <div class="resource-title">Mem.</div>
+                                <div class="resource-container">
+                                    <div class="resource-value">{{ node.resources.percentOfAvailable.memory.requests }} %</div>
+                                    <div class="resource-usage" ng-style="{
+                                        'height': node.resources.percentOfAvailable.memory.requests+'%',
+                                        'background-color': colour_from_percents(node.resources.percentOfAvailable.memory.requests)
+                                    }"></div>
+                                </div>
+                            </div>
+                            <div class="resource">
+                                <div class="resource-title">Vol.</div>
+                                <div class="resource-container">
+                                    <div class="resource-value">{{ node.volumesInUse }}</div>
+                                    <div class="resource-usage" ng-style="{
+                                        'height': node_used_volumes_in_percents(node)+'%',
+                                        'background-color': colour_from_percents(node_used_volumes_in_percents(node))
+                                    }"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </md-card-content>
+                </md-card>
+            </md-content>
+        </md-tab>
+        <md-tab label="Pods map">
+            <md-content class="md-padding status-pods" ng-class="{'display-namespace-name': displayNamespace}">
+                <p>
+                    <md-button class="md-raised md-primary" ng-click="displayNamespace = !displayNamespace;">Toggle namespace</md-button>
+                </p>
+
+                <div class="pod-namespace" ng-repeat="(namespace, pods) in status.pods">
+                    <div class="namespace-name">{{ namespace }}</div>
+                    <div class="pods">
+                        <div ng-repeat="pod in pods"
+                             class="pod"
+                             ng-style="{'background-color': colour_from_pod(pod)}"
+                             title="{{ pod.name }}"
+                             ng-click="showPodDetails(namespace, pod)">
+                        </div>
+                    </div>
+                </div>
+            </md-content>
+        </md-tab>
+        <md-tab label="Pods per node">
+            <md-content class="md-padding status-nodes status-pods">
+                <md-card ng-repeat="(nodeName, podsPerNamespace) in podsByNode" class="node">
+                    <md-card-title>
+                        <md-card-title-text>
+                            <span class="md-headline node-name">{{ nodeName }}</span>
+                        </md-card-title-text>
+                    </md-card-title>
+                    <md-card-content>
+                        <div class="pod-namespace" ng-repeat="(namespace, pods) in podsPerNamespace">
+                            <div class="namespace-name">{{ namespace }}</div>
+                            <div class="pods">
+                                <div ng-repeat="pod in pods"
+                                     class="pod"
+                                     ng-style="{'background-color': colour_from_pod(pod)}"
+                                     title="{{ pod.name }}"
+                                     ng-click="showPodDetails(namespace, pod)">
+                                </div>
+                            </div>
+                        </div>
+                    </md-card-content>
+                </md-card>
+            </md-content>
+        </md-tab>
+    </md-tabs>
+</remote-resource>

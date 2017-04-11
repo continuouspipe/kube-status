@@ -38,6 +38,10 @@ const (
 // ScopeDatastore grants permissions to view and/or manage datastore entities
 const ScopeDatastore = "https://www.googleapis.com/auth/datastore"
 
+// resourcePrefixHeader is the name of the metadata header used to indicate
+// the resource being operated on.
+const resourcePrefixHeader = "google-cloud-resource-prefix"
+
 // protoClient is an interface for *transport.ProtoClient to support injecting
 // fake clients in tests.
 type protoClient interface {
@@ -209,22 +213,22 @@ func keyToProto(k *Key) *pb.Key {
 	// TODO(jbd): Eliminate unrequired allocations.
 	var path []*pb.Key_PathElement
 	for {
-		el := &pb.Key_PathElement{Kind: k.kind}
-		if k.id != 0 {
-			el.IdType = &pb.Key_PathElement_Id{k.id}
-		} else if k.name != "" {
-			el.IdType = &pb.Key_PathElement_Name{k.name}
+		el := &pb.Key_PathElement{Kind: k.Kind}
+		if k.ID != 0 {
+			el.IdType = &pb.Key_PathElement_Id{k.ID}
+		} else if k.Name != "" {
+			el.IdType = &pb.Key_PathElement_Name{k.Name}
 		}
 		path = append([]*pb.Key_PathElement{el}, path...)
-		if k.parent == nil {
+		if k.Parent == nil {
 			break
 		}
-		k = k.parent
+		k = k.Parent
 	}
 	key := &pb.Key{Path: path}
-	if k.namespace != "" {
+	if k.Namespace != "" {
 		key.PartitionId = &pb.PartitionId{
-			NamespaceId: k.namespace,
+			NamespaceId: k.Namespace,
 		}
 	}
 	return key
@@ -241,11 +245,11 @@ func protoToKey(p *pb.Key) (*Key, error) {
 	}
 	for _, el := range p.Path {
 		key = &Key{
-			namespace: namespace,
-			kind:      el.Kind,
-			id:        el.GetId(),
-			name:      el.GetName(),
-			parent:    key,
+			Namespace: namespace,
+			Kind:      el.Kind,
+			ID:        el.GetId(),
+			Name:      el.GetName(),
+			Parent:    key,
 		}
 	}
 	if !key.valid() { // Also detects key == nil.
@@ -526,6 +530,8 @@ func putMutations(keys []*Key, src interface{}) ([]*pb.Mutation, error) {
 		return nil, err
 	}
 	mutations := make([]*pb.Mutation, 0, len(keys))
+	multiErr := make(MultiError, len(keys))
+	hasErr := false
 	for i, k := range keys {
 		elem := v.Index(i)
 		// Two cases where we need to take the address:
@@ -536,7 +542,8 @@ func putMutations(keys []*Key, src interface{}) ([]*pb.Mutation, error) {
 		}
 		p, err := saveEntity(k, elem.Interface())
 		if err != nil {
-			return nil, fmt.Errorf("datastore: Error while saving %v: %v", k.String(), err)
+			multiErr[i] = err
+			hasErr = true
 		}
 		var mut *pb.Mutation
 		if k.Incomplete() {
@@ -545,6 +552,9 @@ func putMutations(keys []*Key, src interface{}) ([]*pb.Mutation, error) {
 			mut = &pb.Mutation{Operation: &pb.Mutation_Upsert{p}}
 		}
 		mutations = append(mutations, mut)
+	}
+	if hasErr {
+		return nil, multiErr
 	}
 	return mutations, nil
 }

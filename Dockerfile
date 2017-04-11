@@ -2,6 +2,13 @@ FROM golang:1.8
 
 ARG KUBE_STATUS_LISTEN_ADDRESS=
 
+RUN mkdir /app
+
+# Add the user interface
+ADD ./static /app/var/static
+ADD ./ui/docker/run.sh /app/prepare-ui.sh
+ADD ./docker/run.sh /app/run.sh
+
 # Add the application
 ADD . /go/src/github.com/continuouspipe/kube-status
 WORKDIR /go/src/github.com/continuouspipe/kube-status
@@ -23,5 +30,7 @@ RUN wget https://github.com/Masterminds/glide/releases/download/v0.12.3/glide-v0
 # Clean up the image
     rm -rf /go
 
+WORKDIR /app
+
 # Run the kube-status when the container starts.
-ENTRYPOINT ["/usr/bin/kube-status", "-logtostderr", "-v", "5"]
+CMD ["/app/run.sh"]

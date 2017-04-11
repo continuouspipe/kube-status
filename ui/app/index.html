@@ -1,0 +1,82 @@
+<!doctype html>
+<html class="no-js" ng-app="kubeStatus">
+<head>
+    <meta charset="utf-8">
+    <base href="/">
+    <title>Kube Status</title>
+    <link rel="icon" href="/favicon.png" type="image/png">
+    <meta name="viewport" content="width=device-width">
+    <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+    <!-- build:css(.) styles/vendor.css -->
+    <link rel="stylesheet" href="bower_components/angular-material/angular-material.css" />
+    <link rel="stylesheet" href="bower_components/loaders.css/loaders.css">
+    <link rel="stylesheet" href="bower_components/sweetalert/dist/sweetalert.css">
+    <link rel="stylesheet" href="bower_components/angular-loading-bar/build/loading-bar.css">
+    <!-- endbuild -->
+    <!-- build:css(.tmp) styles/application.css -->
+    <link rel="stylesheet" href="styles/main.css">
+    <!-- endbuild -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href='https://fonts.googleapis.com/css?family=Roboto:400,500,700' rel='stylesheet' type='text/css'>
+</head>
+<body layout="column">
+<!--[if lt IE 7]>
+<p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade
+    your browser</a> to improve your experience.</p>
+<![endif]-->
+
+<!--
+<md-toolbar layout="row" ui-view="header"></md-toolbar>
+-->
+
+<div flex layout="row">
+    <md-sidenav md-is-open="aside" md-is-locked-open="aside" class="sidebar" ui-view="aside"></md-sidenav>
+    <md-content flex class="content" layout="column" ui-view="content"></md-content>
+</div>
+
+<!-- build:js(.) scripts/vendor.js -->
+<!-- bower:js -->
+<script src="bower_components/jquery/dist/jquery.js"></script>
+<script src="bower_components/angular/angular.js"></script>
+<script src="bower_components/angular-animate/angular-animate.js"></script>
+<script src="bower_components/angular-aria/angular-aria.js"></script>
+<script src="bower_components/angular-ui-router/release/angular-ui-router.js"></script>
+<script src="bower_components/angular-breadcrumb/release/angular-breadcrumb.js"></script>
+<script src="bower_components/angular-google-analytics/dist/angular-google-analytics.min.js"></script>
+<script src="bower_components/angular-loading-bar/build/loading-bar.js"></script>
+<script src="bower_components/angular-messages/angular-messages.js"></script>
+<script src="bower_components/angular-material/angular-material.js"></script>
+<script src="bower_components/angular-resource/angular-resource.js"></script>
+<script src="bower_components/angular-sanitize/angular-sanitize.js"></script>
+<script src="bower_components/angular-timeago/dist/angular-timeago.js"></script>
+<script src="bower_components/angular-touch/angular-touch.js"></script>
+<script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
+<script src="bower_components/js-yaml/dist/js-yaml.js"></script>
+<script src="bower_components/sweetalert/dist/sweetalert.min.js"></script>
+<script src="bower_components/raven-js/dist/raven.js"></script>
+<script src="bower_components/angular-google-chart/ng-google-chart.js"></script>
+<!-- endbower -->
+<!-- endbuild -->
+
+<script src="scripts/config.js"></script>
+
+<!-- build:js({.tmp,app}) scripts/app.js -->
+<script src="scripts/app.js"></script>
+
+<script src="dashboard/controllers/clusters.js"></script>
+<script src="dashboard/controllers/status.js"></script>
+<script src="dashboard/routing.js"></script>
+
+<script src="models/cluster.js"></script>
+<script src="models/status.js"></script>
+
+<script src="layout/controllers/error.js"></script>
+<script src="layout/directives/remote-resource.js"></script>
+<script src="layout/services/remote-resource.js"></script>
+<script src="layout/listeners/aside.js"></script>
+<script src="layout/routing.js"></script>
+<script src="layout/config.js"></script>
+<!-- endbuild -->
+
+</body>
+</html>

@@ -25,6 +25,7 @@ import (
 
 	wrapperspb "github.com/golang/protobuf/ptypes/wrappers"
 	"golang.org/x/net/context"
+	"google.golang.org/api/iterator"
 	pb "google.golang.org/genproto/googleapis/datastore/v1"
 )
 
@@ -103,6 +104,8 @@ type Query struct {
 
 	trans *Transaction
 
+	namespace string
+
 	err error
 }
 
@@ -138,6 +141,17 @@ func (q *Query) Ancestor(ancestor *Key) *Query {
 func (q *Query) EventualConsistency() *Query {
 	q = q.clone()
 	q.eventual = true
+	return q
+}
+
+// Namespace returns a derivative query that is associated with the given
+// namespace.
+//
+// A namespace may be used to partition data for multi-tenant applications.
+// For details, see https://cloud.google.com/datastore/docs/concepts/multitenancy.
+func (q *Query) Namespace(ns string) *Query {
+	q = q.clone()
+	q.namespace = ns
 	return q
 }
 
@@ -543,11 +557,16 @@ func (c *Client) Run(ctx context.Context, q *Query) *Iterator {
 			ProjectId: c.dataset,
 		},
 	}
-	if ns := ctxNamespace(ctx); ns != "" {
+	if q.namespace != "" {
+		t.req.PartitionId = &pb.PartitionId{
+			NamespaceId: q.namespace,
+		}
+	} else if ns := ctxNamespace(ctx); ns != "" {
 		t.req.PartitionId = &pb.PartitionId{
 			NamespaceId: ns,
 		}
 	}
+
 	if err := q.toProto(t.req); err != nil {
 		t.err = err
 	}
@@ -584,7 +603,7 @@ type Iterator struct {
 }
 
 // Done is returned when a query iteration has completed.
-var Done = errors.New("datastore: query has no more results")
+var Done = iterator.Done
 
 // Next returns the key of the next result. When there are no more results,
 // Done is returned as the error.

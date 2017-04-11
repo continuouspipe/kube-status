@@ -1,0 +1,20 @@
+<md-toolbar>
+    <div class="md-toolbar-tools">
+        <h2>
+            <span ng-show="clusters">{{ clusters.length }} clusters(s)</span>
+            <span ng-hide="clusters">Loading...</span>
+        </h2>
+    </div>
+</md-toolbar>
+<md-content flex id="content" class="card-grid">
+    <remote-resource resource-name="clusters">
+        <md-list flex>
+            <md-list-item class="md-3-line" ng-repeat="cluster in clusters" ui-sref="cluster-status({clusterIdentifier: cluster.identifier})">
+              <div class="md-list-item-text" layout="column">
+                <h3>{{ cluster.identifier }}</h3>
+                <h4>{{ cluster.address }}</h4>
+              </div>
+            </md-list-item>
+        </md-list>
+    </remote-resource>
+</md-content>

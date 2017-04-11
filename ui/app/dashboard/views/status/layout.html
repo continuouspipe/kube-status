@@ -1,0 +1,22 @@
+<md-toolbar>
+    <div class="md-toolbar-tools">
+        <h2>
+            <span>{{ cluster.identifier }}'s status</span>
+        </h2>
+    </div>
+</md-toolbar>
+<md-content flex id="content" class="card-grid" ui-view="status">
+    <remote-resource resource-name="history">
+        <p class="help-text">Select a snapshot or click on the real-time icon.</p>
+    </remote-resource>
+</md-content>
+<md-content class="status-history" ng-if="history">
+    <md-content class="md-toolbar-tools" ng-if="history === null">
+        <h4>History is not available.</h4>
+    </md-content>
+    <md-button class="live-button" ui-sref-active="active" ui-sref="cluster-status-view({status: 'live'})">
+        <md-icon>live_tv</md-icon>
+    </md-button>
+
+    <div google-chart class="history-chart" chart="historyChartDefinition" agc-on-select="selectHandler(selectedItem)"></div>
+</md-content>

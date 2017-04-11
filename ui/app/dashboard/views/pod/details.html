@@ -1,0 +1,51 @@
+<md-dialog aria-label="Mango (Fruit)">
+  <form ng-cloak>
+    <md-toolbar>
+      <div class="md-toolbar-tools">
+        <h2>Pod "{{ pod.name }}"</h2>
+        <span flex></span>
+        <md-button class="md-icon-button" ng-click="close()">
+          <md-icon>close</md-icon>
+        </md-button>
+      </div>
+    </md-toolbar>
+
+    <md-dialog-content>
+      <div class="md-dialog-content">
+        <strong>Namespace:</strong> {{ namespace }}<br />
+        <strong>Name:</strong> {{ pod.name }}<br />
+        <strong>Status:</strong> {{ pod.status }}<br />
+        <strong>Creation date:</strong> {{ pod.creationTimestamp | timeAgo }}
+      </div>
+
+    <md-subheader class="md-primary md-no-sticky">Events</md-subheader>
+    <table class="table table-bordered table-hovered">
+        <thead>
+        <tr>
+            <th>First seen</th>
+            <th>Last seen</th>
+            <th>Count</th>
+            <th>From</th>
+            <th>Type</th>
+            <th>Reason</th>
+            <th>Message</th>
+        </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="event in pod.events">
+                <td>{{ event.firstTimestamp }}</td>
+                <td>{{ event.lastTimestamp }}</td>
+                <td>{{ event.count }}</td>
+                <td>{{ event.source.component }}</td>
+                <td>{{ event.type }}</td>
+                <td>{{ event.reason }}</td>
+                <td>{{ event.message }}</td>
+            </tr>
+            <tr ng-show="!pod.events">
+                <td colspan="7">No events found.</td>
+            </tr>
+        </tbody>
+    </table>
+    </md-dialog-content>
+  </form>
+</md-dialog>

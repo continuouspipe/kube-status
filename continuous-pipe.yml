@@ -3,12 +3,21 @@ tasks:
         build:
             services:
                 web:
-                    image: docker.io/continuouspipe/kube-status
-                    naming_strategy: sha1
+                    steps:
+                        - docker_file_path: ./docker/build/Buildfile
+                          build_directory: ./ui
+                          write_artifacts:
+                              - name: user-interface
+                                path: /app/dist
+                        - docker_file_path: ./Dockerfile
+                          read_artifacts:
+                              - name: user-interface
+                                path: /static
+                          image: docker.io/continuouspipe/kube-status
 
     deployment:
         filter:
-            expression: code_reference.branch == "master"
+            expression: code_reference.branch == "master" or "cp:tide" in pull_request.labels
         
         deploy:
             cluster: ${CLUSTER}
@@ -27,6 +36,9 @@ tasks:
                                     key: ${WILDCARD_SSL_KEY}
 
                     specification:
+                        command:
+                        - /app/run.sh
+                        - -cluster-provider=within-k8s
                         ports:
                           - 80
                         environment_variables:
