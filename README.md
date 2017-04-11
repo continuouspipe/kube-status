@@ -4,7 +4,7 @@ This application allows to get the status of a Kubernetes cluster through a simp
 
 ## User interface
 
-TODO
+![User interface demo](extras/ui/DgK15nakpP.gif)
 
 ## Usage
 
