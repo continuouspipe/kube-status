@@ -442,7 +442,7 @@ module.exports = function (grunt) {
     },
 
     ngtemplates: {
-      continuousPipeRiver: {
+      kubeStatus: {
         cwd: 'app',
         src: '**/*.html',
         dest: 'templates.js',
