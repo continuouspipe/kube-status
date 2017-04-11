@@ -28,7 +28,7 @@ import (
 var envListenAddress, _ = os.LookupEnv("KUBE_STATUS_LISTEN_ADDRESS") //e.g.: https://localhost:80
 
 func main() {
-	listProviderType := flag.String("cluster-list", "in-memory", "the cluster list provider")
+	listProviderType := flag.String("cluster-provider", "in-memory", "the cluster list provider")
 	historyStorageType := flag.String("history-storage-backend", "in-memory", "the history storage provider")
 	flag.Parse()
 

@@ -28,7 +28,7 @@ spec:
         env:
         - name: KUBE_STATUS_LISTEN_ADDRESS
           value: http://0.0.0.0:80
-        image: quay.io/continuouspipe/kube-status:master
+        image: docker.io/continuouspipe/kube-status:master
         name: kube-status
         ports:
         - containerPort: 80

@@ -36,6 +36,9 @@ tasks:
                                     key: ${WILDCARD_SSL_KEY}
 
                     specification:
+                        command:
+                        - /app/run.sh
+                        - -cluster-provider=within-k8s
                         ports:
                           - 80
                         environment_variables:
