@@ -1,6 +1,7 @@
 # Kubernetes Status
 
 This application allows to get the status of a Kubernetes cluster through a simple API endpoint, and brings a user interface with it.
+It will gives you both a real-time and an historical view of the status of your cluster.
 
 ## User interface
 
