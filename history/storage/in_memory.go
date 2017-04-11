@@ -25,7 +25,7 @@ func NewInMemoryStatusHistory() *InMemoryStatusHistory {
 	}
 }
 
-func (h InMemoryStatusHistory) Save(clusterIdentifier string, time time.Time, response datasnapshots.ClusterFullStatusResponse) (uuid.UUID, error) {
+func (h *InMemoryStatusHistory) Save(clusterIdentifier string, time time.Time, response datasnapshots.ClusterFullStatusResponse) (uuid.UUID, error) {
 	uuid := uuid.NewV4()
 
 	h.Ring.Value = ClusterStatusInRing{
