@@ -29,8 +29,9 @@ the following implementations exists:
 
 In order to use this provider, you will need these environment variables:
 
-| Name | Required | Description | Example |
-| `CLUSTER_LIST` | Yes | An inline JSON description of your clusters | `[{"identifier":"my-cluster","address":"https://1.2.3.4","username":"-","password":"-"}]` |
+Name | Required | Description | Example
+--- | --- | --- | ----
+`CLUSTER_LIST` | Yes | An inline JSON description of your clusters | `[{"identifier":"my-cluster","address":"https://1.2.3.4","username":"-","password":"-"}]` |
 
 ### History storage backend
 
@@ -59,8 +60,9 @@ In order to use the Google Cloud Datastore backend, you need to:
 
 ### Environment variables
 
-| Name | Required | Description | Example |
-| `KUBE_STATUS_LISTEN_ADDRESS` | Yes | The to expose the API to | `http://127.0.0.1:8080` |
+Name | Required | Description | Example
+--- | --- | --- | ----
+`KUBE_STATUS_LISTEN_ADDRESS` | Yes | The to expose the API to | `http://127.0.0.1:8080` |
 
 ## API
 
