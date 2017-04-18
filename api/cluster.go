@@ -12,7 +12,7 @@ import (
 )
 
 //ClusterFullStatusURLPath is the api endpoint for the retrieving the cluster status historic data
-const BackwardCompatibleClusterFullStatusURLPath = "/cluster/status/full"
+const BackwardCompatibleClusterFullStatusURLPath = "/cluster/full-status"
 const ClusterListURLPath = "/clusters"
 const ClusterFullStatusURLPath = "/clusters/{clusterIdentifier}/status"
 
