@@ -49,13 +49,15 @@ type ClusterFullStatusCPUMemory struct {
 
 //ClusterFullStatusNode status for each children node
 type ClusterFullStatusNode struct {
-	Name              string                     `json:"name"`
-	CreationTimestamp string                     `json:"creationTimestamp"`
-	Status            string                     `json:"status"`
-	Resources         ClusterFullStatusResources `json:"resources"`
-	Capacity          ClusterFullStatusCPUMemory `json:"capacity"`
-	Allocatable       ClusterFullStatusCPUMemory `json:"allocatable"`
-	VolumesInUse      int                        `json:"volumesInUse"`
+	Name              string                        `json:"name"`
+	CreationTimestamp string                        `json:"creationTimestamp"`
+	Status            string                        `json:"status"` // @deprecated
+	Conditions        []kubernetesapi.NodeCondition `json:"conditions"`
+	Events		  []kubernetesapi.Event         `json:"events"`
+	Resources         ClusterFullStatusResources    `json:"resources"`
+	Capacity          ClusterFullStatusCPUMemory    `json:"capacity"`
+	Allocatable       ClusterFullStatusCPUMemory    `json:"allocatable"`
+	VolumesInUse      int                           `json:"volumesInUse"`
 }
 
 //ClusterFullStatusPod status for each pod
@@ -133,7 +135,7 @@ func (s *ClusterSnapshot) FetchCluster(requestedCluster clustersprovider.Cluster
 	}
 
 	statusCluster := getStatusCluster()
-	statusNodes, errList := getStatusNodes(podLists, nodes)
+	statusNodes, errList := getStatusNodes(clientset, podLists, nodes)
 	if len(errList.Items()) > 0 {
 		return nil, errList
 	}
@@ -192,8 +194,23 @@ func getPodListByNode(clientset *internalclientset.Clientset, nodes *kubernetesa
 	return &podLists, &el
 }
 
-func getStatusNodes(podLists *map[string]*kubernetesapi.PodList, nodes *kubernetesapi.NodeList) ([]ClusterFullStatusNode, *errors.ErrorList) {
-	statusNodes := []ClusterFullStatusNode{}
+func nodeIsReady(node kubernetesapi.Node) bool {
+	for _, condition := range node.Status.Conditions {
+		if condition.Type == "Ready" {
+			return condition.Status == "True"
+		}
+	}
+
+	return false
+}
+
+type NodeStatusChanWrapper struct {
+	error  error
+	status ClusterFullStatusNode
+}
+
+func getStatusNodes(clientset *internalclientset.Clientset, podLists *map[string]*kubernetesapi.PodList, nodes *kubernetesapi.NodeList) ([]ClusterFullStatusNode, *errors.ErrorList) {
+	statusNodesChan := make(chan NodeStatusChanWrapper)
 	el := errors.ErrorList{}
 
 	for _, node := range nodes.Items {
@@ -202,55 +219,103 @@ func getStatusNodes(podLists *map[string]*kubernetesapi.PodList, nodes *kubernet
 			continue
 		}
 
-		nodeResources, err := getNodeResource((*podLists)[node.GetName()], &node)
-		if err != nil {
-			el.Add(err)
-			el.Add(fmt.Errorf("error when getting the node resources for namespace %s", node.GetNamespace()))
-			continue
-		}
+		go func(node kubernetesapi.Node) {
+			status, err := getNodeStatus(clientset, podLists, node)
 
-		statusNodes = append(statusNodes, ClusterFullStatusNode{
-			node.Name,
-			node.GetCreationTimestamp().UTC().Format(time.RFC3339),
-			string(node.Status.Conditions[totalConditions-1].Type),
-			ClusterFullStatusResources{
-				ClusterFullStatusRequestLimits{
-					nodeResources.cpuReqs,
-					nodeResources.cpuLimits,
-				},
-				ClusterFullStatusRequestLimits{
-					nodeResources.memoryReqs,
-					nodeResources.memoryLimits,
-				},
-				ClusterFullStatusRequestLimitsCPUMemory{
-					ClusterFullStatusRequestLimits{
-						strconv.FormatInt(nodeResources.fractionCPUReqs, 10),
-						strconv.FormatInt(nodeResources.fractionCPULimits, 10),
-					},
-					ClusterFullStatusRequestLimits{
-						strconv.FormatInt(nodeResources.fractionMemoryReqs, 10),
-						strconv.FormatInt(nodeResources.fractionMemoryLimits, 10),
-					},
-				},
-			},
-			ClusterFullStatusCPUMemory{
-				node.Status.Capacity.Cpu().String(),
-				node.Status.Capacity.Memory().String(),
-			},
-			ClusterFullStatusCPUMemory{
-				node.Status.Allocatable.Cpu().String(),
-				node.Status.Allocatable.Memory().String(),
-			},
-			len(node.Status.VolumesInUse),
-		})
+			statusNodesChan <- NodeStatusChanWrapper{
+				status: status,
+				error: err,
+			}
+		}(node)
 	}
-	return statusNodes, &el
+
+	statuses := []ClusterFullStatusNode{}
+	for i := 0; i < len(nodes.Items); i++ {
+		statusNode := <-statusNodesChan
+
+		if statusNode.error != nil {
+			el.Add(statusNode.error)
+		} else {
+			statuses = append(statuses, statusNode.status)
+		}
+	}
+
+	return statuses, &el
+}
+
+func getNodeStatus(clientset *internalclientset.Clientset, podLists *map[string]*kubernetesapi.PodList, node kubernetesapi.Node) (ClusterFullStatusNode, error) {
+	events := []kubernetesapi.Event{}
+	var err error
+
+	if !nodeIsReady(node) {
+		events, err = fetchNodeEvents(clientset, node)
+
+		if err != nil {
+			return ClusterFullStatusNode{}, err
+		}
+	}
+
+	nodeResources, err := getNodeResource((*podLists)[node.GetName()], &node)
+	if err != nil {
+		return ClusterFullStatusNode{}, err
+	}
+
+	return ClusterFullStatusNode{
+		node.Name,
+		node.GetCreationTimestamp().UTC().Format(time.RFC3339),
+		"Unknown", // Deprecated field
+		node.Status.Conditions,
+		events,
+		ClusterFullStatusResources{
+			ClusterFullStatusRequestLimits{
+				nodeResources.cpuReqs,
+				nodeResources.cpuLimits,
+			},
+			ClusterFullStatusRequestLimits{
+				nodeResources.memoryReqs,
+				nodeResources.memoryLimits,
+			},
+			ClusterFullStatusRequestLimitsCPUMemory{
+				ClusterFullStatusRequestLimits{
+					strconv.FormatInt(nodeResources.fractionCPUReqs, 10),
+					strconv.FormatInt(nodeResources.fractionCPULimits, 10),
+				},
+				ClusterFullStatusRequestLimits{
+					strconv.FormatInt(nodeResources.fractionMemoryReqs, 10),
+					strconv.FormatInt(nodeResources.fractionMemoryLimits, 10),
+				},
+			},
+		},
+		ClusterFullStatusCPUMemory{
+			node.Status.Capacity.Cpu().String(),
+			node.Status.Capacity.Memory().String(),
+		},
+		ClusterFullStatusCPUMemory{
+			node.Status.Allocatable.Cpu().String(),
+			node.Status.Allocatable.Memory().String(),
+		},
+		len(node.Status.VolumesInUse),
+	}, nil
 }
 
 type podEventWrapper struct {
 	name   string
 	err    error
 	events []kubernetesapi.Event
+}
+
+func fetchNodeEvents(clientset *internalclientset.Clientset, node kubernetesapi.Node) ([]kubernetesapi.Event, error) {
+	involvedNamespace := ""
+	involvedObjectKind := "Node"
+
+	events, err := clientset.Core().Events("").List(kubernetesapi.ListOptions{
+		FieldSelector: clientset.Core().Events("").GetFieldSelector(&node.Name, &involvedNamespace, &involvedObjectKind, &node.Name),
+	})
+	if err != nil {
+		return []kubernetesapi.Event{}, err
+	}
+
+	return events.Items, nil
 }
 
 func getPodsEvents(clientset *internalclientset.Clientset, podLists *map[string]*kubernetesapi.PodList) (map[string][]kubernetesapi.Event, *errors.ErrorList) {
