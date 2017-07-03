@@ -38,7 +38,6 @@ func (h DataSnapshotHandler) Snapshot() {
 	t := time.Now()
 	fmt.Println("Snapshotting clusters status", t)
 
-	uuids := make(chan uuid.UUID)
 	var wg sync.WaitGroup
 
 	clusters := h.clusterListProvider.Clusters()
@@ -47,23 +46,17 @@ func (h DataSnapshotHandler) Snapshot() {
 		fmt.Printf("Snapshotting cluster '%s'\n", cluster.Identifier)
 		wg.Add(1)
 
-		go func () {
+		go func (cluster clustersprovider.Cluster, time time.Time) {
 			defer wg.Done()
 
-			uuid := h.SnapshotCluster(cluster, t)
+			snapshotUuid := h.SnapshotCluster(cluster, time)
 
-			uuids <- uuid
-		}()
+			fmt.Printf("Stored snapshot with UUID '%s' for cluster '%s'\n", snapshotUuid.String(), cluster.Identifier)
+		}(cluster, t)
 	}
 
-	go func() {
-		for uuid := range uuids {
-			fmt.Printf("Stored snapshot with UUID '%s'\n", uuid.String())
-		}
-	}()
-
 	wg.Wait()
-	fmt.Printf("Finished snapshots\n")
+	fmt.Println("Finished snapshots")
 }
 
 func (h DataSnapshotHandler) SnapshotCluster(cluster clustersprovider.Cluster, time time.Time) uuid.UUID {
