@@ -29,7 +29,7 @@ angular.module('kubeStatus')
                 }
             })
             .state('cluster-status-view', {
-                url: '/cluster/:clusterIdentifier/status/{status}',
+                url: '/{status}',
                 parent: 'cluster-status',
                 views: {
                     'status': {
