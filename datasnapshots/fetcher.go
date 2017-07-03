@@ -51,7 +51,7 @@ type ClusterFullStatusCPUMemory struct {
 type ClusterFullStatusNode struct {
 	Name              string                        `json:"name"`
 	CreationTimestamp string                        `json:"creationTimestamp"`
-	Status            string                        `json:"status"` // @deprecated
+	Status            string                        `json:"status"`
 	Conditions        []kubernetesapi.NodeCondition `json:"conditions"`
 	Events		  []kubernetesapi.Event         `json:"events"`
 	Resources         ClusterFullStatusResources    `json:"resources"`
@@ -246,8 +246,11 @@ func getStatusNodes(clientset *internalclientset.Clientset, podLists *map[string
 func getNodeStatus(clientset *internalclientset.Clientset, podLists *map[string]*kubernetesapi.PodList, node kubernetesapi.Node) (ClusterFullStatusNode, error) {
 	events := []kubernetesapi.Event{}
 	var err error
+	isReady := nodeIsReady(node)
+	status := "Ready"
 
-	if !nodeIsReady(node) {
+	if !isReady {
+		status = "NotReady"
 		events, err = fetchNodeEvents(clientset, node)
 
 		if err != nil {
@@ -263,7 +266,7 @@ func getNodeStatus(clientset *internalclientset.Clientset, podLists *map[string]
 	return ClusterFullStatusNode{
 		node.Name,
 		node.GetCreationTimestamp().UTC().Format(time.RFC3339),
-		"Unknown", // Deprecated field
+		status,
 		node.Status.Conditions,
 		events,
 		ClusterFullStatusResources{
