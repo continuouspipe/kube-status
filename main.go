@@ -69,6 +69,10 @@ func main() {
 		StartApi(snapshooter, clusterList, storageBackend)
 	} else if "history" == command {
 		StartHistoryHandler(snapshooter, clusterList, storageBackend)
+
+		// wait indefinitely
+		c := make(chan struct{})
+		<-c
 	} else if "api" == command {
 		StartApi(snapshooter, clusterList, storageBackend)
 	} else if "snapshot" == command {
