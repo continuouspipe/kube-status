@@ -60,16 +60,13 @@ func (gds *GoogleCloudDatastoreStatusHistory) Save(clusterIdentifier string, tim
 }
 
 func (gds *GoogleCloudDatastoreStatusHistory) EntriesByCluster(clusterIdentifier string, left time.Time, right time.Time) ([]*ClusterStatusHistoryEntry, error) {
-	client, err := gds.Client()
-
-	if err != nil {
-		return []*ClusterStatusHistoryEntry{}, err
-	}
-
 	// Create a query to fetch all Task entities, ordered by "created".
 	var entriesInDatastore []*ClusterStatusHistoryEntryInGoogleCloudDataStore
-	query := datastore.NewQuery("HistoryEntry").Order("EntryTime").Filter("EntryTime > ", left).Filter("EntryTime < ", right).Filter("ClusterIdentifier = ", clusterIdentifier)
-	_, err = client.GetAll(gds.ClientContext(), query, &entriesInDatastore)
+	err := gds.DataStoreQuery(
+		datastore.NewQuery("HistoryEntry").Order("EntryTime").Filter("EntryTime > ", left).Filter("EntryTime < ", right).Filter("ClusterIdentifier = ", clusterIdentifier),
+		&entriesInDatastore,
+	)
+
 	if err != nil {
 		return []*ClusterStatusHistoryEntry{}, err
 	}
@@ -106,6 +103,44 @@ func (gds *GoogleCloudDatastoreStatusHistory) Fetch(identifier uuid.UUID) (datas
 	}
 
 	return snapshot, nil
+}
+
+func (gds *GoogleCloudDatastoreStatusHistory) RemoveEntriesBefore(datetime time.Time) (int, error) {
+	var entriesInDatastore []*ClusterStatusHistoryEntryInGoogleCloudDataStore
+	err := gds.DataStoreQuery(
+		datastore.NewQuery("HistoryEntry").Order("EntryTime").Filter("EntryTime < ", datetime),
+		&entriesInDatastore,
+	)
+
+	if err != nil {
+		return 0, err
+	}
+
+	client, err := gds.Client()
+	if err != nil {
+		return 0, err
+	}
+
+	keys := make([]*datastore.Key, len(entriesInDatastore))
+	for index, entry := range entriesInDatastore {
+		keys[index] = &datastore.Key{
+			Kind: "HistoryEntry",
+			Name: entry.UUID,
+		}
+	}
+
+	return len(keys), client.DeleteMulti(gds.ClientContext(), keys)
+}
+
+func (gds *GoogleCloudDatastoreStatusHistory) DataStoreQuery(query *datastore.Query, dst interface{}) error {
+	client, err := gds.Client()
+	if err != nil {
+		return err
+	}
+
+	_, err = client.GetAll(gds.ClientContext(), query, dst)
+
+	return err
 }
 
 func (gds *GoogleCloudDatastoreStatusHistory) Client() (*datastore.Client, error) {
