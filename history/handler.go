@@ -70,7 +70,7 @@ func (h DataSnapshotHandler) SnapshotCluster(cluster clustersprovider.Cluster, t
 
 	savedUuid, err := h.storage.Save(cluster.Identifier, time, *status)
 	if err != nil {
-		fmt.Printf("Something wrong happened while storring the snapshot of cluster '%s': %s", cluster.Identifier, err)
+		fmt.Printf("Something wrong happened while storing the snapshot of cluster '%s': %s", cluster.Identifier, err)
 
 		return uuid.Nil
 	}

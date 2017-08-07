@@ -68,7 +68,7 @@ func (gds *GoogleCloudDatastoreStatusHistory) EntriesByCluster(clusterIdentifier
 
 	// Create a query to fetch all Task entities, ordered by "created".
 	var entriesInDatastore []*ClusterStatusHistoryEntryInGoogleCloudDataStore
-	query := datastore.NewQuery("HistoryEntry").Order("EntryTime").Filter("EntryTime > ", left).Filter("EntryTime < ", right)
+	query := datastore.NewQuery("HistoryEntry").Order("EntryTime").Filter("EntryTime > ", left).Filter("EntryTime < ", right).Filter("ClusterIdentifier = ", clusterIdentifier)
 	_, err = client.GetAll(gds.ClientContext(), query, &entriesInDatastore)
 	if err != nil {
 		return []*ClusterStatusHistoryEntry{}, err
