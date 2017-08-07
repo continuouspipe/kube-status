@@ -79,3 +79,8 @@ func (h InMemoryStatusHistory) Fetch(identifier uuid.UUID) (datasnapshots.Cluste
 
 	return datasnapshots.ClusterFullStatusResponse{}, fmt.Errorf("Not found")
 }
+
+func (h InMemoryStatusHistory) RemoveEntriesBefore(datetime time.Time) (int, error) {
+	// In-memory implementation will not garbage collect as the ring as a fix length anyway.
+	return 0, nil
+}

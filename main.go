@@ -23,6 +23,7 @@ import (
 	"github.com/continuouspipe/kube-status/history"
 	"github.com/continuouspipe/kube-status/history/storage"
 	"github.com/prometheus/common/log"
+	"strconv"
 )
 
 var envListenAddress, _ = os.LookupEnv("KUBE_STATUS_LISTEN_ADDRESS") //e.g.: https://localhost:80
@@ -51,25 +52,37 @@ func main() {
 		log.Fatalf("Cluster list provider '%s' do not exists", *listProviderType)
 	}
 
-	var history storage.ClusterStatusHistory
+	var storageBackend storage.ClusterStatusHistory
 	if "in-memory" == *historyStorageType {
-		history = storage.NewInMemoryStatusHistory()
+		storageBackend = storage.NewInMemoryStatusHistory()
 	} else if "google-cloud-datastore" == *historyStorageType {
-		history = storage.NewGoogleCloudDatastoreStatusHistory()
+		storageBackend = storage.NewGoogleCloudDatastoreStatusHistory()
 	} else {
 		log.Fatalf("History storage provider '%s' do not exists", *historyStorageType)
+	}
+
+	hoursOfHistoryToKeep := os.Getenv("ONLY_KEEP_HOURS_OF_HISTORY")
+	if "" != hoursOfHistoryToKeep {
+		hours, err := strconv.ParseInt(hoursOfHistoryToKeep, 10, 64)
+		if err != nil {
+			log.Fatalf("Hours is not a valid integer: %s", hoursOfHistoryToKeep)
+		}
+
+		garbageCollector := history.NewGarbageCollector(storageBackend, int(hours))
+
+		go garbageCollector.Handle()
 	}
 
 	snapshooter := datasnapshots.NewClusterSnapshot()
 
 	fmt.Printf("Run \"%s\"\n", command)
 	if "run" == command {
-		StartHistoryHandler(snapshooter, clusterList, history)
-		StartApi(snapshooter, clusterList, history)
+		StartHistoryHandler(snapshooter, clusterList, storageBackend)
+		StartApi(snapshooter, clusterList, storageBackend)
 	} else if "api" == command {
-		StartApi(snapshooter, clusterList, history)
+		StartApi(snapshooter, clusterList, storageBackend)
 	} else if "snapshot" == command {
-		Snapshot(snapshooter, clusterList, history)
+		Snapshot(snapshooter, clusterList, storageBackend)
 	} else {
 		fmt.Printf("Command \"%s\"not found", command)
 		os.Exit(1)
