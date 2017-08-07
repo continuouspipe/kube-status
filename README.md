@@ -64,10 +64,12 @@ It will store at maximum 720 statuses in memory.
 
 #### Google Cloud Datastore
 
-In order to use the Google Cloud Datastore backend, you need to:
+In order to use the Google Cloud Datastore backend, you need to configure the following environment variables:
 
-1. Create a `GOOGLE_CLOUD_PROJECT_ID` project environment variable with your Google Cloud project identifier
-2. Put a JSON service account in the `var/service-account.json` file.
+Name | Required | Description | Example
+--- | --- | --- | ----
+`GOOGLE_CLOUD_PROJECT_ID` | Yes | Identifier of your Google Cloud project | ø |
+`GOOGLE_CLOUD_SERVICE_ACCOUNT` | Yes | Base64-encoded service account JSON file | ø |
 
 **Note:** you'll have to have your DataStore indexes matching the ones in `extras/google-cloud-datastore/indexes.yaml`. Uses the `gcloud preview datastore create-indexes [file-path]` command to create these indexes.
 
