@@ -3,17 +3,7 @@ tasks:
         build:
             services:
                 web:
-                    steps:
-                        - docker_file_path: ./docker/build/Buildfile
-                          build_directory: ./ui
-                          write_artifacts:
-                              - name: user-interface
-                                path: /app/dist
-                        - docker_file_path: ./Dockerfile
-                          read_artifacts:
-                              - name: user-interface
-                                path: /static
-                          image: docker.io/continuouspipe/kube-status
+                    image: docker.io/continuouspipe/kube-status
 
     deployment:
         filter:
