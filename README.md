@@ -20,7 +20,8 @@ The cluster provider is responsible of providing the list and credentials of the
 the following implementations exists:
 
 - `in-memory`. Will provide the cluster list from an environment variable.
-- `within-k8s`. Will provider the Kubernetes cluster in which kube-status is running.
+- `within-k8s`. Will provide the Kubernetes cluster in which kube-status is running.
+- `continuous-pipe`. Will provide the Kubernetes clusters from all the clusters of all the teams you have access from [ContinuousPipe](https://continuouspipe.io).
 
 ```
 -cluster-provider=[provider]
@@ -33,6 +34,15 @@ In order to use this provider, you will need these environment variables:
 Name | Required | Description | Example
 --- | --- | --- | ----
 `CLUSTER_LIST` | Yes | An inline JSON description of your clusters | `[{"identifier":"my-cluster","address":"https://1.2.3.4","username":"-","password":"-"}]` |
+
+#### ContinuousPipe cluster provider
+
+In order to use this provider, you will need these environment variables:
+
+Name | Required | Description | Example
+--- | --- | --- | ----
+`CONTINUOUS_PIPE_API_KEY` | Yes | The API key to use to call the API | ø |
+
 
 ### History storage backend
 

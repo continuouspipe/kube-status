@@ -67,18 +67,23 @@ func (h ClusterApiHandler) ReturnClusterStatus(w http.ResponseWriter, cluster cl
 		return
 	}
 
-	json, err := json.Marshal(*status)
+	jsonStr, err := json.Marshal(*status)
 	if err != nil {
 		errors.LogAndRespondWithError(w, http.StatusBadRequest, "Error while marshalling status: %s", err.Error())
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(json)
+	w.Write(jsonStr)
 }
 
 func (h ClusterApiHandler) HandleList(w http.ResponseWriter, r *http.Request) {
-	clusters := h.Provider.Clusters()
+	clusters, err := h.Provider.Clusters()
+	if err != nil {
+		errors.LogAndRespondWithError(w, http.StatusInternalServerError, "Error when loading the clusters: %s", err.Error())
+		return
+	}
+
 	obfuscatedClusters := make([]clustersprovider.Cluster, len(clusters))
 
 	// Obfuscate the credentials
