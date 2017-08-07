@@ -50,7 +50,7 @@ ARG KUBE_STATUS_LISTEN_ADDRESS=
 
 WORKDIR /app
 
-COPY --from=userinterface /app/dist /app/var/static
+COPY --from=userinterface /app/ui/dist /app/var/static
 COPY --from=api /go/bin/kube-status /usr/bin/kube-status
 
 ADD ./ui/docker/run.sh /app/prepare-ui.sh
