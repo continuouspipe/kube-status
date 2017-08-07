@@ -436,7 +436,7 @@ module.exports = function (grunt) {
           dest: '.tmp/scripts/config.js'
         },
         constants: {
-          API_URL: process.env.API_URL    
+          API_URL: process.env.API_URL
         }
       }
     },

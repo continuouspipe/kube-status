@@ -1,4 +1,4 @@
-angular.module('kubeStatus')
+angular.module('kubeStatusDashboard')
     .service('StatusFetcher', function($http, API_URL) {
         this.findByCluster = function(cluster) {
             return $http.get(API_URL+'/clusters/'+cluster.identifier+'/status').then(function(response) {

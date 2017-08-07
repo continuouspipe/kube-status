@@ -1,4 +1,4 @@
-angular.module('kubeStatus')
+angular.module('kubeStatusDashboard')
     .service('ClusterRepository', function($resource, $q, API_URL) {
         var resource = $resource(API_URL+'/clusters');
 
