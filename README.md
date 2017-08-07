@@ -71,6 +71,20 @@ In order to use the Google Cloud Datastore backend, you need to:
 
 **Note:** you'll have to have your DataStore indexes matching the ones in `extras/google-cloud-datastore/indexes.yaml`. Uses the `gcloud preview datastore create-indexes [file-path]` command to create these indexes.
 
+
+#### Garbage collection
+
+If you want not to keep the entries for a long time, you can enable the garbage collection of history. Use the following environment variable
+to configure it:
+
+Name | Required | Description | Example
+--- | --- | --- | ----
+`ONLY_KEEP_HOURS_OF_HISTORY` | No | The number of hours you want to keep the data for each cluster | `24` for... a day ;-) |
+
+**Note:** this is right now only supported by the Google Cloud Datastore storage, as the memory one as a fixed buffer size anyway.
+
+
+
 ### Environment variables
 
 Name | Required | Description | Example
