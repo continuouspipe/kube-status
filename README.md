@@ -59,6 +59,8 @@ In order to use the Google Cloud Datastore backend, you need to:
 1. Create a `GOOGLE_CLOUD_PROJECT_ID` project environment variable with your Google Cloud project identifier
 2. Put a JSON service account in the `var/service-account.json` file.
 
+**Note:** you'll have to have your DataStore indexes matching the ones in `extras/google-cloud-datastore/indexes.yaml`. Uses the `gcloud preview datastore create-indexes [file-path]` command to create these indexes.
+
 ### Environment variables
 
 Name | Required | Description | Example

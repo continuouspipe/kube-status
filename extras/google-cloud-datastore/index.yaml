@@ -1,0 +1,6 @@
+indexes:
+- kind: HistoryEntry
+  ancestor: no
+  properties:
+  - name: ClusterIdentifier
+  - name: EntryTime
