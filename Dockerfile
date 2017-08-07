@@ -10,19 +10,19 @@ RUN apt-get update \
 
 # Build the application
 RUN mkdir /app
-WORKDIR /app
+WORKDIR /app/ui
 
 # Install node dependencies
-ADD ./ui/package.json /app/package.json
+ADD ./ui/package.json /app/ui/package.json
 RUN npm install
 
 # Install bower dependencies
-ADD ui/.bowerrc /app/.bowerrc
-ADD ui/bower.json /app/bower.json
-RUN bower install --config.interactive=false --allow-root
+ADD ./.bowerrc /app/.bowerrc
+ADD ./bower.json /app/bower.json
+RUN cd /app && bower install --config.interactive=false --allow-root
 
 # Build the code
-COPY ./ui/ /app
+COPY ./ui/ /app/ui
 RUN grunt build
 
 ## Build the API
