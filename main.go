@@ -61,6 +61,25 @@ func main() {
 		log.Fatalf("History storage provider '%s' do not exists", *historyStorageType)
 	}
 
+	snapshooter := datasnapshots.NewClusterSnapshot()
+
+	fmt.Printf("Run \"%s\"\n", command)
+	if "run" == command {
+		StartHistoryHandler(snapshooter, clusterList, storageBackend)
+		StartApi(snapshooter, clusterList, storageBackend)
+	} else if "history" == command {
+		StartHistoryHandler(snapshooter, clusterList, storageBackend)
+	} else if "api" == command {
+		StartApi(snapshooter, clusterList, storageBackend)
+	} else if "snapshot" == command {
+		Snapshot(snapshooter, clusterList, storageBackend)
+	} else {
+		fmt.Printf("Command \"%s\"not found", command)
+		os.Exit(1)
+	}
+}
+
+func StartHistoryHandler(snapshooter datasnapshots.ClusterSnapshooter, clusterList clustersprovider.ClusterListProvider, storageBackend storage.ClusterStatusHistory) {
 	hoursOfHistoryToKeep := os.Getenv("ONLY_KEEP_HOURS_OF_HISTORY")
 	if "" != hoursOfHistoryToKeep {
 		hours, err := strconv.ParseInt(hoursOfHistoryToKeep, 10, 64)
@@ -73,24 +92,7 @@ func main() {
 		go garbageCollector.Handle()
 	}
 
-	snapshooter := datasnapshots.NewClusterSnapshot()
-
-	fmt.Printf("Run \"%s\"\n", command)
-	if "run" == command {
-		StartHistoryHandler(snapshooter, clusterList, storageBackend)
-		StartApi(snapshooter, clusterList, storageBackend)
-	} else if "api" == command {
-		StartApi(snapshooter, clusterList, storageBackend)
-	} else if "snapshot" == command {
-		Snapshot(snapshooter, clusterList, storageBackend)
-	} else {
-		fmt.Printf("Command \"%s\"not found", command)
-		os.Exit(1)
-	}
-}
-
-func StartHistoryHandler(snapshooter datasnapshots.ClusterSnapshooter, clusterList clustersprovider.ClusterListProvider, storage storage.ClusterStatusHistory) {
-	storageHandler := NewHistoryHandler(snapshooter, clusterList, storage)
+	storageHandler := NewHistoryHandler(snapshooter, clusterList, storageBackend)
 
 	go storageHandler.Handle()
 }
