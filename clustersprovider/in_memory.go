@@ -24,7 +24,12 @@ func NewInMemoryClusterList() *InMemoryClusterList {
 }
 
 func (c InMemoryClusterList) ByIdentifier(identifier string) (Cluster, error) {
-	for _, cluster := range c.Clusters() {
+	clusters, err := c.Clusters()
+	if err != nil {
+		return Cluster{}, err
+	}
+
+	for _, cluster := range clusters {
 		if cluster.Identifier == identifier {
 			return cluster, nil
 		}
@@ -33,6 +38,6 @@ func (c InMemoryClusterList) ByIdentifier(identifier string) (Cluster, error) {
 	return Cluster{}, fmt.Errorf("Cluster not found")
 }
 
-func (c InMemoryClusterList) Clusters() []Cluster {
-	return c.ClusterList
+func (c InMemoryClusterList) Clusters() ([]Cluster, error) {
+	return c.ClusterList, nil
 }

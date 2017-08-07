@@ -13,7 +13,12 @@ func NewWithinKubernetesClusterList() *WithinKubernetesClusterList {
 }
 
 func (c WithinKubernetesClusterList) ByIdentifier(identifier string) (Cluster, error) {
-	for _, cluster := range c.Clusters() {
+	clusters, err := c.Clusters()
+	if err != nil {
+		return Cluster{}, err
+	}
+
+	for _, cluster := range clusters {
 		if cluster.Identifier == identifier {
 			return cluster, nil
 		}
@@ -22,15 +27,15 @@ func (c WithinKubernetesClusterList) ByIdentifier(identifier string) (Cluster, e
 	return Cluster{}, fmt.Errorf("Cluster not found")
 }
 
-func (c WithinKubernetesClusterList) Clusters() []Cluster {
+func (c WithinKubernetesClusterList) Clusters() ([]Cluster, error) {
 	cluster, err := c.GetCluster()
 	if err != nil {
-		return []Cluster{}
+		return []Cluster{}, err
 	}
 
 	return []Cluster{
 		cluster,
-	}
+	}, nil
 }
 
 func (c WithinKubernetesClusterList) GetCluster() (Cluster, error) {

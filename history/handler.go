@@ -28,6 +28,8 @@ func NewDataSnapshotHandler(clp clustersprovider.ClusterListProvider, cs datasna
 
 //Handle each 2 minutes takes the list of cluster, fetch the data and stores it into a google bucket
 func (h DataSnapshotHandler) Handle() {
+	h.Snapshot()
+
 	ticker := time.NewTicker(time.Minute * 2)
 	for _ = range ticker.C {
 		h.Snapshot()
@@ -35,12 +37,23 @@ func (h DataSnapshotHandler) Handle() {
 }
 
 func (h DataSnapshotHandler) Snapshot() {
+	err := h.DoSnapshot()
+
+	if err != nil {
+		fmt.Println("ERROR: Could not snapshot: ", err)
+	}
+}
+
+func (h DataSnapshotHandler) DoSnapshot() error {
 	t := time.Now()
 	fmt.Println("Snapshotting clusters status", t)
 
 	var wg sync.WaitGroup
 
-	clusters := h.clusterListProvider.Clusters()
+	clusters, err := h.clusterListProvider.Clusters()
+	if err != nil {
+		return err
+	}
 
 	for _, cluster := range clusters {
 		fmt.Printf("Snapshotting cluster '%s'\n", cluster.Identifier)
@@ -57,6 +70,8 @@ func (h DataSnapshotHandler) Snapshot() {
 
 	wg.Wait()
 	fmt.Println("Finished snapshots")
+
+	return nil
 }
 
 func (h DataSnapshotHandler) SnapshotCluster(cluster clustersprovider.Cluster, time time.Time) uuid.UUID {
