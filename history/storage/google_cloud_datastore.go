@@ -9,12 +9,17 @@ import (
 	"github.com/continuouspipe/kube-status/datasnapshots"
 	"github.com/satori/go.uuid"
 	"k8s.io/kubernetes/pkg/util/json"
+	"fmt"
+	"io/ioutil"
+	"encoding/base64"
 )
 
-var googleCloudProjectId, _ = os.LookupEnv("GOOGLE_CLOUD_PROJECT_ID")
 var UuidNamespace, _ = uuid.FromString("0bcaf5df-8117-440c-96f2-2f5499054299")
 
-type GoogleCloudDatastoreStatusHistory struct{}
+type GoogleCloudDatastoreStatusHistory struct{
+	GoogleCloudProjectId 		  string
+	GoogleCloudServiceAccountFilePath string
+}
 
 type ClusterStatusHistoryEntryInGoogleCloudDataStore struct {
 	UUID 			  string
@@ -24,7 +29,35 @@ type ClusterStatusHistoryEntryInGoogleCloudDataStore struct {
 }
 
 func NewGoogleCloudDatastoreStatusHistory() *GoogleCloudDatastoreStatusHistory {
-	return &GoogleCloudDatastoreStatusHistory{}
+	googleCloudProjectId := os.Getenv("GOOGLE_CLOUD_PROJECT_ID")
+	if googleCloudProjectId == "" {
+		panic(fmt.Errorf("Required environment varible %s found empty", "GOOGLE_CLOUD_PROJECT_ID"))
+	}
+
+	base64EncodedServiceAccount := os.Getenv("GOOGLE_CLOUD_SERVICE_ACCOUNT")
+	if base64EncodedServiceAccount == "" {
+		panic(fmt.Errorf("Required environment varible %s found empty", "GOOGLE_CLOUD_SERVICE_ACCOUNT"))
+	}
+
+	file, err := ioutil.TempFile(os.TempDir(), "prefix")
+	if err != nil {
+		panic(err)
+	}
+
+	decoded, err := base64.StdEncoding.DecodeString(base64EncodedServiceAccount)
+	if err != nil {
+		panic(fmt.Errorf("Base64 encoded service account seems invalid: %s", err.Error()))
+	}
+
+	_, err = file.Write(decoded)
+	if err != nil {
+		panic(fmt.Errorf("Can't write service accunt: %s", err.Error()))
+	}
+
+	return &GoogleCloudDatastoreStatusHistory{
+		GoogleCloudProjectId: googleCloudProjectId,
+		GoogleCloudServiceAccountFilePath: file.Name(),
+	}
 }
 
 func (gds *GoogleCloudDatastoreStatusHistory) Save(clusterIdentifier string, time time.Time, response datasnapshots.ClusterFullStatusResponse) (uuid.UUID, error) {
@@ -144,7 +177,7 @@ func (gds *GoogleCloudDatastoreStatusHistory) DataStoreQuery(query *datastore.Qu
 }
 
 func (gds *GoogleCloudDatastoreStatusHistory) Client() (*datastore.Client, error) {
-	return datastore.NewClient(gds.ClientContext(), googleCloudProjectId, option.WithServiceAccountFile("var/service-account.json"))
+	return datastore.NewClient(gds.ClientContext(), gds.GoogleCloudProjectId, option.WithServiceAccountFile(gds.GoogleCloudServiceAccountFilePath))
 }
 
 func (gds *GoogleCloudDatastoreStatusHistory) ClientContext() (context.Context) {
