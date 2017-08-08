@@ -1,4 +1,4 @@
-angular.module('kubeStatus')
+angular.module('kubeStatusDashboard')
     .controller('ClusterStatusLayoutController', function($scope, $state, $remoteResource, StatusFetcher, HistoryChartFactory, cluster) {
         $scope.cluster = cluster;
 
@@ -21,7 +21,7 @@ angular.module('kubeStatus')
             return $state.go('cluster-status-view', {'status': snapshot.UUID});
         };
     })
-    .controller('ClusterStatusController', function($scope, $remoteResource, $mdColors, $mdDialog, $stateParams, StatusFetcher, cluster) {
+    .controller('ClusterStatusController', function(KUBE_STATUS_TEMPLATE_URI_ROOT, $scope, $remoteResource, $mdColors, $mdDialog, $stateParams, StatusFetcher, cluster) {
         var statusFetcher;
         if ($stateParams.status == 'live') {
             statusFetcher = StatusFetcher.findByCluster(cluster);
@@ -49,7 +49,7 @@ angular.module('kubeStatus')
                         $mdDialog.cancel();
                     };
                 },
-                templateUrl: 'dashboard/views/pod/details.html',
+                templateUrl: KUBE_STATUS_TEMPLATE_URI_ROOT+'dashboard/views/pod/details.html',
                 parent: angular.element(document.body),
                 clickOutsideToClose:true,
                 scope: scope
@@ -109,7 +109,7 @@ angular.module('kubeStatus')
         var raw_colour_from_node_status = function(status) {
             if ('Ready' == status) {
                 return 'green';
-            } 
+            }
 
             return 'red';
         };
@@ -120,42 +120,5 @@ angular.module('kubeStatus')
             else if (percents > 40) { return 'blue'; }
             return 'blue';
         }
-    })
-    .service('HistoryChartFactory', function() {
-        this.fromHistory = function(history) {
-            return {
-                "data": {
-                    "cols": [
-                        { type: 'string', id: 'Snapshot' },
-                        { type: 'date', id: 'Start' },
-                        { type: 'date', id: 'End' }
-                    ], 
-                    "rows": history.map(function(snapshot) {
-                        var time = Date.parse(snapshot.EntryTime),
-                            left = new Date(time),
-                            right = new Date(time + 1 * 60000);
-
-                        return {
-                            c: [
-                                {v: 'Snapshots'},
-                                {v: left},
-                                {v: right},
-                            ]
-                        }
-                    })
-                },
-                "type": "Timeline",
-                "displayed": false,
-                "options": {
-                    timeline: { 
-                        colorByRowLabel: true
-                    },
-                    height: 100,
-                    'tooltip' : {
-                      trigger: 'none'
-                    }
-                }
-            };
-        };
     })
 ;

@@ -1,6 +1,6 @@
-angular.module('kubeStatus')
-    .service('ClusterRepository', function($resource, $q, API_URL) {
-        var resource = $resource(API_URL+'/clusters');
+angular.module('kubeStatusDashboard')
+    .service('ClusterRepository', function($resource, $q, KUBE_STATUS_API_URL) {
+        var resource = $resource(KUBE_STATUS_API_URL+'/clusters');
 
         this.findAll = function() {
             return resource.query().$promise;

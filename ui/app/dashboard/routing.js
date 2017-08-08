@@ -1,14 +1,14 @@
 'use strict';
 
 angular.module('kubeStatus')
-    .config(function($stateProvider) {
+    .config(function($stateProvider, KUBE_STATUS_TEMPLATE_URI_ROOT) {
         $stateProvider
             .state('clusters', {
                 url: '/',
                 parent: 'layout',
                 views: {
                     'content@': {
-                        templateUrl: 'dashboard/views/clusters/list.html',
+                        templateUrl: KUBE_STATUS_TEMPLATE_URI_ROOT+'dashboard/views/clusters/list.html',
                         controller: 'ClustersController'
                     }
                 }
@@ -18,7 +18,7 @@ angular.module('kubeStatus')
                 parent: 'layout',
                 views: {
                     'content@': {
-                        templateUrl: 'dashboard/views/status/layout.html',
+                        templateUrl: KUBE_STATUS_TEMPLATE_URI_ROOT+'dashboard/views/status/layout.html',
                         controller: 'ClusterStatusLayoutController'
                     }
                 },
@@ -33,7 +33,7 @@ angular.module('kubeStatus')
                 parent: 'cluster-status',
                 views: {
                     'status': {
-                        templateUrl: 'dashboard/views/status/full.html',
+                        templateUrl: KUBE_STATUS_TEMPLATE_URI_ROOT+'dashboard/views/status/full.html',
                         controller: 'ClusterStatusController'
                     }
                 }

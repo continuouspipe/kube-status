@@ -61,15 +61,15 @@
 <script src="scripts/config.js"></script>
 
 <!-- build:js({.tmp,app}) scripts/app.js -->
-<script src="scripts/app.js"></script>
-
+<script src="dashboard/module.js"></script>
 <script src="dashboard/controllers/clusters.js"></script>
 <script src="dashboard/controllers/status.js"></script>
+<script src="dashboard/services/history-chart-factory.js"></script>
+<script src="dashboard/models/cluster.js"></script>
+<script src="dashboard/models/status.js"></script>
+
+<script src="scripts/app.js"></script>
 <script src="dashboard/routing.js"></script>
-
-<script src="models/cluster.js"></script>
-<script src="models/status.js"></script>
-
 <script src="layout/controllers/error.js"></script>
 <script src="layout/directives/remote-resource.js"></script>
 <script src="layout/services/remote-resource.js"></script>

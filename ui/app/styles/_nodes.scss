@@ -1,0 +1,77 @@
+.status-nodes {
+    .node {
+        display: flex;
+        width: 200px;
+        flex-direction: column;
+        float: left;
+        margin-right: 15px;
+        margin-bottom: 15px;
+
+        md-card-title {
+            padding: 5px 10px;
+            margin-bottom: 10px;
+
+            md-card-title-text {
+                width: 100%;
+
+                span.md-headline {
+                    font-size: 14px;
+                    font-weight: bold;
+                    padding-bottom: 0;
+                }
+                span.md-subhead {
+                    padding-top: 0;
+                }
+            }
+        }
+
+        .node-name {
+            white-space: nowrap;
+            overflow: hidden;              /* "overflow" value must be different from "visible" */
+            text-overflow:    ellipsis;
+            direction:rtl;
+            text-align:left;
+            padding-bottom: 10px;
+        }
+        .resources-overview {
+            height: 200px;
+            display: flex;
+
+            .resource {
+                display: flex;
+                flex-direction: column;
+                flex: 1;
+
+                .resource-title {
+                    text-align: center;
+                    font-weight: bold;
+                }
+                .resource-container {
+                    border: 1px solid #ccc;
+                    flex: 1;
+                    position: relative;
+
+                    .resource-usage {
+                        position: absolute;
+                        bottom: 0;
+                        right: 0;
+                        left: 0;
+                        background: grey;
+                        z-index: 1;
+                    }
+                    .resource-value {
+                        text-align: center;
+                        z-index: 2;
+                        position: absolute;
+                        left: 0;
+                        right: 0;
+                        top: 0;
+                    }
+                }
+            }
+        }
+        .node-status {
+            text-align: center;
+        }
+    }
+}

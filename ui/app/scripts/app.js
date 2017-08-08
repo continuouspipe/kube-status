@@ -11,8 +11,10 @@ angular
         'ui.router',
         'ngMaterial',
         'yaru22.angular-timeago',
-        'googlechart'
+        'googlechart',
+        'kubeStatusDashboard'
     ])
+    .constant('KUBE_STATUS_TEMPLATE_URI_ROOT', '')
     .config(function ($urlRouterProvider, $locationProvider, $mdThemingProvider) {
         $urlRouterProvider.otherwise('/');
         $locationProvider.html5Mode(false);

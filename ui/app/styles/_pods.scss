@@ -1,0 +1,23 @@
+.status-pods {
+    .pod-namespace {
+        border: 1px dotted #999;
+        float: left;
+        padding: 5px;
+
+        .namespace-name {
+            display: none;
+        }
+
+        .pod {
+            display: inline-block;
+            background: #ccc;
+            width: 20px;
+            height: 20px;
+            margin-right: 1px;
+        }
+    }
+
+    &.display-namespace-name .pod-namespace .namespace-name {
+        display: block;
+    }
+}
