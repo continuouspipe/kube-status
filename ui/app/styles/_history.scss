@@ -1,0 +1,20 @@
+.status-history {
+    display: flex;
+    flex-direction: row;
+    margin-top: 5px;
+    padding-top: 5px;
+    padding-right: 5px;
+    background: white;
+    border-top: 1px solid #ccc;
+
+    .history-chart {
+        flex: 1;
+        height: 80px;
+    }
+
+    .live-button.active {
+        md-icon {
+            color: #0688ff;
+        }
+    }
+}
