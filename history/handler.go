@@ -14,15 +14,17 @@ import (
 type DataSnapshotHandler struct {
 	clusterListProvider clustersprovider.ClusterListProvider
 	clusterSnapshooter  datasnapshots.ClusterSnapshooter
-	storage				storage.ClusterStatusHistory
+	storage             storage.ClusterStatusHistory
+	snapshotInternal    int
 }
 
 //NewDataSnapshotHandler ctor for DataSnapshotHandler
-func NewDataSnapshotHandler(clp clustersprovider.ClusterListProvider, cs datasnapshots.ClusterSnapshooter, storage storage.ClusterStatusHistory) *DataSnapshotHandler {
+func NewDataSnapshotHandler(clp clustersprovider.ClusterListProvider, cs datasnapshots.ClusterSnapshooter, storage storage.ClusterStatusHistory, snapshotInterval int) *DataSnapshotHandler {
 	return &DataSnapshotHandler{
 		clusterListProvider: clp,
 		clusterSnapshooter: cs,
 		storage: storage,
+		snapshotInternal: snapshotInterval,
 	}
 }
 
@@ -30,7 +32,7 @@ func NewDataSnapshotHandler(clp clustersprovider.ClusterListProvider, cs datasna
 func (h DataSnapshotHandler) Handle() {
 	h.Snapshot()
 
-	ticker := time.NewTicker(time.Minute * 2)
+	ticker := time.NewTicker(time.Minute * time.Duration(h.snapshotInternal))
 	for _ = range ticker.C {
 		h.Snapshot()
 	}

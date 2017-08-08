@@ -84,12 +84,12 @@ Name | Required | Description | Example
 **Note:** this is right now only supported by the Google Cloud Datastore storage, as the memory one as a fixed buffer size anyway.
 
 
-
 ### Environment variables
 
-Name | Required | Description | Example
---- | --- | --- | ----
-`KUBE_STATUS_LISTEN_ADDRESS` | Yes | The to expose the API to | `http://127.0.0.1:8080` |
+Name | Required | Description | Example | Default
+--- | --- | --- | --- | ---
+`KUBE_STATUS_LISTEN_ADDRESS` | Yes | The to expose the API to | `http://127.0.0.1:8080` | ø
+`SNAPSHOT_INTERVAL` | No | The internal, in minutes, to do the snapshots | `http://127.0.0.1:8080` | 5
 
 ## API
 

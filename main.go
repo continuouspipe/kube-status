@@ -103,10 +103,25 @@ func Snapshot(snapshooter datasnapshots.ClusterSnapshooter, clusterList clusters
 }
 
 func NewHistoryHandler(snapshooter datasnapshots.ClusterSnapshooter, clusterList clustersprovider.ClusterListProvider, storage storage.ClusterStatusHistory) (history.DataSnapshotHandler) {
+	var snapInterval int
+	snapshotIntervalString := os.Getenv("SNAPSHOT_INTERVAL")
+	if "" != snapshotIntervalString {
+		parsedInternal, err := strconv.ParseInt(snapshotIntervalString, 10, 64)
+
+		if err != nil {
+			log.Fatalf("Hours is not a valid integer: %s", snapshotIntervalString)
+		}
+
+		snapInterval = int(parsedInternal)
+	} else {
+		snapInterval = 5
+	}
+
 	handler := history.NewDataSnapshotHandler(
 		clusterList,
 		snapshooter,
 		storage,
+		snapInterval,
 	)
 
 	return *handler
