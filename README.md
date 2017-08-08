@@ -71,7 +71,7 @@ Name | Required | Description | Example
 `GOOGLE_CLOUD_PROJECT_ID` | Yes | Identifier of your Google Cloud project | ø |
 `GOOGLE_CLOUD_SERVICE_ACCOUNT` | Yes | Base64-encoded service account JSON file | ø |
 
-**Note:** you'll have to have your DataStore indexes matching the ones in `extras/google-cloud-datastore/indexes.yaml`. Uses the `gcloud preview datastore create-indexes [file-path]` command to create these indexes.
+**Note:** you'll have to have your DataStore indexes matching the ones in `extras/google-cloud-datastore/indexes.yaml`. Uses the `gcloud datastore create-indexes [file-path]` command to create these indexes.
 
 
 #### Garbage collection

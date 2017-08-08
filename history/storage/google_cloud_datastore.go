@@ -23,9 +23,15 @@ type GoogleCloudDatastoreStatusHistory struct{
 
 type ClusterStatusHistoryEntryInGoogleCloudDataStore struct {
 	UUID 			  string
-	ClusterIdentifier string
-	JsonEncodedStatus []byte `datastore:",noindex"`
+	ClusterIdentifier 	  string
+	JsonEncodedStatus 	  []byte `datastore:",noindex"`
 	EntryTime 		  time.Time
+}
+
+type ProjectedClusterStatusHistoryEntryInGoogleCloudDataStore struct {
+	UUID 		  string
+	ClusterIdentifier string
+	EntryTime         int
 }
 
 func NewGoogleCloudDatastoreStatusHistory() *GoogleCloudDatastoreStatusHistory {
@@ -94,9 +100,9 @@ func (gds *GoogleCloudDatastoreStatusHistory) Save(clusterIdentifier string, tim
 
 func (gds *GoogleCloudDatastoreStatusHistory) EntriesByCluster(clusterIdentifier string, left time.Time, right time.Time) ([]*ClusterStatusHistoryEntry, error) {
 	// Create a query to fetch all Task entities, ordered by "created".
-	var entriesInDatastore []*ClusterStatusHistoryEntryInGoogleCloudDataStore
+	var entriesInDatastore []*ProjectedClusterStatusHistoryEntryInGoogleCloudDataStore
 	err := gds.DataStoreQuery(
-		datastore.NewQuery("HistoryEntry").Order("EntryTime").Filter("EntryTime > ", left).Filter("EntryTime < ", right).Filter("ClusterIdentifier = ", clusterIdentifier),
+		datastore.NewQuery("HistoryEntry").Project("UUID", "EntryTime").Order("EntryTime").Filter("EntryTime > ", left).Filter("EntryTime < ", right).Filter("ClusterIdentifier = ", clusterIdentifier),
 		&entriesInDatastore,
 	)
 
@@ -107,10 +113,13 @@ func (gds *GoogleCloudDatastoreStatusHistory) EntriesByCluster(clusterIdentifier
 	// Remove the content from the data
 	entries := make([]*ClusterStatusHistoryEntry, len(entriesInDatastore))
 	for i, entryInDatastore := range entriesInDatastore {
+		seconds := entryInDatastore.EntryTime / 1000000
+		nsec := (entryInDatastore.EntryTime % seconds) * 1000000
+
 		entries[i] = &ClusterStatusHistoryEntry{
 			UUID: entryInDatastore.UUID,
-			ClusterIdentifier: entryInDatastore.ClusterIdentifier,
-			EntryTime: entryInDatastore.EntryTime,
+			ClusterIdentifier: clusterIdentifier,
+			EntryTime: time.Unix(int64(seconds), int64(nsec)),
 		}
 	}
 
