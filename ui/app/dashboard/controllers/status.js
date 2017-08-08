@@ -21,7 +21,7 @@ angular.module('kubeStatusDashboard')
             return $state.go('cluster-status-view', {'status': snapshot.UUID});
         };
     })
-    .controller('ClusterStatusController', function($scope, $remoteResource, $mdColors, $mdDialog, $stateParams, StatusFetcher, cluster) {
+    .controller('ClusterStatusController', function(KUBE_STATUS_TEMPLATE_URI_ROOT, $scope, $remoteResource, $mdColors, $mdDialog, $stateParams, StatusFetcher, cluster) {
         var statusFetcher;
         if ($stateParams.status == 'live') {
             statusFetcher = StatusFetcher.findByCluster(cluster);
@@ -49,7 +49,7 @@ angular.module('kubeStatusDashboard')
                         $mdDialog.cancel();
                     };
                 },
-                templateUrl: 'dashboard/views/pod/details.html',
+                templateUrl: KUBE_STATUS_TEMPLATE_URI_ROOT+'dashboard/views/pod/details.html',
                 parent: angular.element(document.body),
                 clickOutsideToClose:true,
                 scope: scope
