@@ -4,3 +4,9 @@ indexes:
   properties:
   - name: ClusterIdentifier
   - name: EntryTime
+- kind: HistoryEntry
+  ancestor: no
+  properties:
+  - name: ClusterIdentifier
+  - name: EntryTime
+  - name: UUID
