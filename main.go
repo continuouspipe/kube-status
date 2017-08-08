@@ -69,6 +69,10 @@ func main() {
 		StartApi(snapshooter, clusterList, storageBackend)
 	} else if "history" == command {
 		StartHistoryHandler(snapshooter, clusterList, storageBackend)
+
+		// wait indefinitely
+		c := make(chan struct{})
+		<-c
 	} else if "api" == command {
 		StartApi(snapshooter, clusterList, storageBackend)
 	} else if "snapshot" == command {
@@ -103,10 +107,25 @@ func Snapshot(snapshooter datasnapshots.ClusterSnapshooter, clusterList clusters
 }
 
 func NewHistoryHandler(snapshooter datasnapshots.ClusterSnapshooter, clusterList clustersprovider.ClusterListProvider, storage storage.ClusterStatusHistory) (history.DataSnapshotHandler) {
+	var snapInterval int
+	snapshotIntervalString := os.Getenv("SNAPSHOT_INTERVAL")
+	if "" != snapshotIntervalString {
+		parsedInternal, err := strconv.ParseInt(snapshotIntervalString, 10, 64)
+
+		if err != nil {
+			log.Fatalf("Hours is not a valid integer: %s", snapshotIntervalString)
+		}
+
+		snapInterval = int(parsedInternal)
+	} else {
+		snapInterval = 5
+	}
+
 	handler := history.NewDataSnapshotHandler(
 		clusterList,
 		snapshooter,
 		storage,
+		snapInterval,
 	)
 
 	return *handler

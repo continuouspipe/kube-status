@@ -64,10 +64,12 @@ It will store at maximum 720 statuses in memory.
 
 #### Google Cloud Datastore
 
-In order to use the Google Cloud Datastore backend, you need to:
+In order to use the Google Cloud Datastore backend, you need to configure the following environment variables:
 
-1. Create a `GOOGLE_CLOUD_PROJECT_ID` project environment variable with your Google Cloud project identifier
-2. Put a JSON service account in the `var/service-account.json` file.
+Name | Required | Description | Example
+--- | --- | --- | ----
+`GOOGLE_CLOUD_PROJECT_ID` | Yes | Identifier of your Google Cloud project | ø |
+`GOOGLE_CLOUD_SERVICE_ACCOUNT` | Yes | Base64-encoded service account JSON file | ø |
 
 **Note:** you'll have to have your DataStore indexes matching the ones in `extras/google-cloud-datastore/indexes.yaml`. Uses the `gcloud preview datastore create-indexes [file-path]` command to create these indexes.
 
@@ -84,12 +86,12 @@ Name | Required | Description | Example
 **Note:** this is right now only supported by the Google Cloud Datastore storage, as the memory one as a fixed buffer size anyway.
 
 
-
 ### Environment variables
 
-Name | Required | Description | Example
---- | --- | --- | ----
-`KUBE_STATUS_LISTEN_ADDRESS` | Yes | The to expose the API to | `http://127.0.0.1:8080` |
+Name | Required | Description | Example | Default
+--- | --- | --- | --- | ---
+`KUBE_STATUS_LISTEN_ADDRESS` | Yes | The to expose the API to | `http://127.0.0.1:8080` | ø
+`SNAPSHOT_INTERVAL` | No | The internal, in minutes, to do the snapshots | `http://127.0.0.1:8080` | 5
 
 ## API
 
