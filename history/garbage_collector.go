@@ -24,7 +24,7 @@ func NewGarbageCollector(storage storage.ClusterStatusHistory, hoursToKeep int) 
 func (gc *GarbageCollector) Handle() {
     gc.GarbageCollect()
 
-    ticker := time.NewTicker(time.Minute * 5)
+    ticker := time.NewTicker(time.Hour * 1)
     for _ = range ticker.C {
         gc.GarbageCollect()
     }
